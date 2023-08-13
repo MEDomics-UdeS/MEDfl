@@ -9,6 +9,5 @@ scikit_learn==0.23.2
 setuptools==50.3.2
 SQLAlchemy==2.0.19
 torch==2.0.1
-~andas==0.25.3
 alembic>=1.7
 
