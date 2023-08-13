@@ -1,0 +1,20 @@
+
+---
+  task : BinaryClassification
+  optimizer : SGD
+  train_batch_size : 32
+  test_batch_size : 1
+  train_epochs : 6
+  lr : 0.001
+  diff_privacy: True
+  MAX_GRAD_NORM: 1.0
+  EPSILON: 20.0
+  DELTA: 1e-5
+  num_rounds: 3
+  min_evalclient: 2
+  path_to_master_csv : '~/Desktop/Github/MEDfl/Notebooks/sapsii_score_knnimputed_eicu.csv'
+  path_to_test_csv : '~/Desktop/Github/MEDfl/Notebooks/eicu_test.csv'
+
+...
+
+
