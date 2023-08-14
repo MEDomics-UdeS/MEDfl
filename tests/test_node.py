@@ -10,7 +10,7 @@ from Medfl.LearningManager.utils import params
 class TestNode(unittest.TestCase):
     def setUp(self):
         # Set up a test node and dataset for testing
-        self.test_node = Node(name="TestNode", train=1, test_fraction=0.2)
+        self.test_node = Node(name="TestNode", train=1, test_fraction=0.2,)
         self.test_node.create_node(NetId=1)
         self.dataset_name = "TestDataset"
         self.dataset_path = params['path_to_test_csv']
