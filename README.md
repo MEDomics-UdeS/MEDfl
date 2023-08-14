@@ -3,8 +3,6 @@
 ![Build Status](https://travis-ci.org/MEDomics-UdeS/MEDfl.svg?branch=main)
 ![CI](https://github.com/MEDomics-UdeS/MEDfl/actions/workflows/main.yml/badge.svg)
 ![GitHub contributors](https://img.shields.io/github/contributors/scottydocs/README-template.md)
-![GitHub stars](https://img.shields.io/github/stars/scottydocs/README-template.md?style=social)
-![GitHub forks](https://img.shields.io/github/forks/scottydocs/README-template.md?style=social)
 ![License: MIT](https://img.shields.io/badge/license-MIT-green)
 
 
