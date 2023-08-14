@@ -12,7 +12,7 @@
   * [1. Introduction](#1-introduction)
   * [2. Installation](#2-installation)
   * [3. Documentation](#3-documentation)
-  * [4. Getting started](#4-Getting started)
+  * [4. Getting started](#4-Getting-started)
   * [5. Acknowledgement](#5-acknowledgement)
   * [6. Authors](#6-authors)
   * [7. Statement](#7-statement)
