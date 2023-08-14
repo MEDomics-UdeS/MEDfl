@@ -38,7 +38,7 @@ class FederatedDataset:
         :param FLsetupId: The FLsetup ID associated with the Federated Dataset.
         """
         query_params = {"name": self.name, "FLsetupId": FLsetupId}
-        my_eng.execute(text(INSERT_FLDATASET_QUERY), **query_params)
+        my_eng.execute(text(INSERT_FLDATASET_QUERY), query_params)
         self.id = get_feddataset_id_from_name(self.name)
 
     def update(self, FLpipeId: int, FedId: int):

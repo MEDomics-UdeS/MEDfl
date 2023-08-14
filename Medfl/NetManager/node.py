@@ -16,7 +16,7 @@ class Node:
     """
 
     def __init__(
-        self, name: str, train: int, test_fraction: float = 0.2, engine=None
+        self, name: str, train: int, test_fraction: float = 0.2, engine=my_eng
     ):
         """
         Initialize a Node instance.
@@ -29,7 +29,7 @@ class Node:
         self.name = name
         self.train = train
         self.test_fraction = 1.0 if self.train == 0 else test_fraction
-        self.engine = engine if engine is not None else my_eng
+        self.engine = engine
 
     def validate(self):
         """Validate name, train, test_fraction"""

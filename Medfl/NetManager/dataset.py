@@ -81,5 +81,5 @@ class DataSet:
         :returns: A DataFrame containing the names of all datasets in the 'DataSets' table.
         :rtype: pd.DataFrame
         """
-        res = pd.read_sql(SELECT_ALL_DATASET_NAMES, engine)
+        res = pd.read_sql(text(SELECT_ALL_DATASET_NAMES), engine)
         return res

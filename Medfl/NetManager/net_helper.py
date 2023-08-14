@@ -1,9 +1,12 @@
 from sklearn.preprocessing import LabelEncoder
 from sqlalchemy import text
 
-from Medfl.NetManager.net_helper import *
 import torch
 import pandas as pd
+from torch.utils.data import TensorDataset
+
+from scripts.base import my_eng
+
 
 def is_str(data_df, row, x):
     if data_df[x].dtype == "object":
@@ -121,5 +124,3 @@ def master_table_exists():
     ).values[0][0]
 
 
-def my_eng():
-    return None

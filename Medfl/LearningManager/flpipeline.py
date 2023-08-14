@@ -87,7 +87,7 @@ class FLpipeline:
             creation_date=creation_date,
             result=result,
         )
-        my_eng.execute(query)
+        my_eng.execute(text(query))
         self.id = get_flpipeline_from_name(self.name)
         try:
             self.server.fed_dataset.update(
