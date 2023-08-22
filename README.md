@@ -1,7 +1,7 @@
 # MEDfl : Federated Learning and Differential Privacy Simulation Tool for Tabular Data
 ![Python Versions](https://img.shields.io/badge/python-3.9-blue)
 ![Build Status](https://travis-ci.org/MEDomics-UdeS/MEDfl.svg?branch=main)
-![CI](https://github.com/MEDomics-UdeS/MEDfl/actions/workflows/main.yml/badge.svg)
+
 ![GitHub contributors](https://img.shields.io/github/contributors/scottydocs/README-template.md)
 ![License: MIT](https://img.shields.io/badge/license-MIT-green)
 
