@@ -62,12 +62,14 @@ class Network:
             text(LIST_ALL_NODES_QUERY.format(name=self.name)), my_eng
         )
 
-    def create_master_dataset(self, path_to_csv : str = params['path_to_master_csv'] ):
+    def create_master_dataset(self, path_to_csv : str = 'D:\ESI\\3CS\PFE\last_year\Code\MEDfl\\notebooks\sapsii_score_knnimputed_eicu.csv' ):
+        print("here")
         """
         Create the MasterDataset table and insert dataset values.
 
         :param path_to_csv: Path to the CSV file containing the dataset.
         """
+        print(path_to_csv)
         # Read the CSV file into a Pandas DataFrame
         data_df = pd.read_csv(path_to_csv)
 

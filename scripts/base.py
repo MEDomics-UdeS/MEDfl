@@ -4,7 +4,7 @@ from configparser import ConfigParser
 
 # Load configuration from the config file
 config = ConfigParser()
-config.read('/home/hlpc/Desktop/Github/MEDfl/scripts/config.ini')
+config.read('D:\\ESI\\3CS\\PFE\\last_year\\Code\\MEDfl\\scripts\\config.ini')
 mysql_config = config['mysql']
 
 connection_string = (

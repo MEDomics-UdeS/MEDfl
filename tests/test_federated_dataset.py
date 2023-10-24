@@ -28,7 +28,7 @@ class TestFederatedDataset(unittest.TestCase):
         pass
 
     def create_mock_dataset(
-        self, path="~/Desktop/Github/MEDfl/notebooks/eicu_test.csv"
+        self, path="D:\ESI\\3CS\PFE\last_year\Code\MEDfl/notebooks/eicu_test.csv"
     ):
         data_df = pd.read_csv(path)
         encoder = LabelEncoder()
