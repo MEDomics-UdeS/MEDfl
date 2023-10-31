@@ -21,6 +21,7 @@ def create_query(name, description, creation_date, result):
     return query
 
 
+
 class FLpipeline:
     """
     FLpipeline class for managing Federated Learning pipelines.

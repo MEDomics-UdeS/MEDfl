@@ -232,7 +232,7 @@ class FLsetup:
         self.create()
 
         self.id = get_flsetupid_from_name(self.name)
-        self.network.update_network(FLsetupId=self.id)
+        # self.network.update_network(FLsetupId=self.id)
         fed_dataset = FederatedDataset(
             self.name + "_Feddataset",
             train_nodes_names,

@@ -37,6 +37,8 @@ INSERT_NETWORK_QUERY = "INSERT INTO Networks(NetName) VALUES ('{name}')"
 # SQL query to delete a network
 DELETE_NETWORK_QUERY = "DELETE FROM Networks WHERE NetName = '{name}'"
 
+
+
 # SQL query to update a network
 UPDATE_NETWORK_QUERY = (
     "UPDATE Networks SET FLsetupId = {FLsetupId} WHERE NetId = {id}"
