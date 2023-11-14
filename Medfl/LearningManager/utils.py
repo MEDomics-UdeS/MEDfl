@@ -15,14 +15,39 @@ with open(yaml_path) as g:
 
 def custom_classification_report(y_true, y_pred):
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
-    acc = (tp + tn) / (tp + tn + fp + fn)
-    sen = (tp) / (tp + fn)
-    sp = (tn) / (tn + fp)
-    ppv = (tp) / (tp + fp)
-    npv = (tn) / (tn + fn)
-    f1 = 2 * (sen * ppv) / (sen + ppv)
-    fpr = (fp) / (fp + tn)
-    tpr = (tp) / (tp + fn)
+
+    # Accuracy
+    denominator_acc = tp + tn + fp + fn
+    acc = (tp + tn) / denominator_acc if denominator_acc != 0 else 0.0
+
+    # Sensitivity/Recall
+    denominator_sen = tp + fn
+    sen = tp / denominator_sen if denominator_sen != 0 else 0.0
+
+    # Specificity
+    denominator_sp = tn + fp
+    sp = tn / denominator_sp if denominator_sp != 0 else 0.0
+
+    # PPV/Precision
+    denominator_ppv = tp + fp
+    ppv = tp / denominator_ppv if denominator_ppv != 0 else 0.0
+
+#     NPV
+    denominator_npv = tn + fn
+    npv = tn / denominator_npv if denominator_npv != 0 else 0.0
+
+    # F1 Score
+    denominator_f1 = sen + ppv
+    f1 = 2 * (sen * ppv) / denominator_f1 if denominator_f1 != 0 else 0.0
+
+    # False Positive Rate
+    denominator_fpr = fp + tn
+    fpr = fp / denominator_fpr if denominator_fpr != 0 else 0.0
+
+    # True Positive Rate
+    denominator_tpr = tp + fn
+    tpr = tp / denominator_tpr if denominator_tpr != 0 else 0.0
+
     return {
         "confusion matrix": {"TP": tp, "FP": fp, "FN": fn, "TN": tn},
         "Accuracy": round(acc, 3),

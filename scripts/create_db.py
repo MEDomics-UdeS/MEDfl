@@ -81,6 +81,22 @@ try:
      PRIMARY KEY (id)\
     ) ")
 
+    # Create test results table
+    mycursor.execute("CREATE TABLE testResults(\
+     pipelineId INT,\
+     nodename VARCHAR(100) NOT NULL, \
+     confusionmatrix VARCHAR(255),\
+     accuracy LONG,\
+     sensivity LONG,\
+     ppv LONG,\
+     npv LONG,\
+     f1score LONG,\
+     fpr LONG,\
+     tpr LONG, \
+     PRIMARY KEY (pipelineId , nodename), \
+     FOREIGN KEY (pipelineId) REFERENCES FLpipeline(id)\
+    ) ")
+
     # Create FederatedDataset table
     mycursor.execute("CREATE TABLE FedDatasets (\
      FedId int NOT NULL AUTO_INCREMENT,\

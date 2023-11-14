@@ -1,5 +1,8 @@
 import datetime
 from typing import List
+import json
+import pandas as pd
+
 
 # File: create_query.py
 from sqlalchemy import text
@@ -10,7 +13,7 @@ from Medfl.LearningManager.utils import params, test
 from scripts.base import my_eng
 from Medfl.NetManager.net_helper import get_flpipeline_from_name
 from Medfl.NetManager.net_manager_queries import (CREATE_FLPIPELINE_QUERY,
-                                                  DELETE_FLPIPELINE_QUERY)
+                                                  DELETE_FLPIPELINE_QUERY , CREATE_TEST_RESULTS_QUERY)
 
 
 def create_query(name, description, creation_date, result):
@@ -107,7 +110,7 @@ class FLpipeline:
         # Placeholder code for deleting the FLpipeline entry from the database based on the name.
         # You need to implement the actual deletion based on your database setup.
         my_eng.execute(DELETE_FLPIPELINE_QUERY.format(self.name))
-
+    
     def test_by_node(self, node_name: str, test_frac=1) -> dict:
         """
         Test the FLpipeline by node with the specified test_frac.
@@ -157,4 +160,32 @@ class FLpipeline:
             for node in self.server.fed_dataset.test_nodes
         ]
         self.create("\n".join(str(res).replace("'", '"') for res in result))
+
+        for entry in result:
+           node_name = entry['node_name']
+           classification_report_str = entry['classification_report']
+
+           # Convert the 'classification_report' string to a dictionary
+           classification_report_dict = json.loads(classification_report_str.replace("'", "\""))
+           try:
+               # Insert record into the 'testResults' table
+               query = CREATE_TEST_RESULTS_QUERY.format(
+                      pipelineId = self.id, 
+                      nodeName = node_name , 
+                      confusion_matrix = json.dumps(classification_report_dict['confusion matrix']), 
+                      accuracy =classification_report_dict['Accuracy'] , 
+                      sensivity = classification_report_dict['Sensitivity/Recall'] ,
+                      ppv = classification_report_dict['PPV/Precision'] ,
+                      npv= classification_report_dict['NPV'] ,
+                      f1score= classification_report_dict['F1-score'] ,
+                      fpr= classification_report_dict['False positive rate'] ,
+                      tpr= classification_report_dict['True positive rate'] 
+                )
+               my_eng.execute(text(query))
+           except Exception as e:
+                # This block will catch any other exceptions
+                print(f"An unexpected error occurred: {e}")
+               
+           
+
         return result
