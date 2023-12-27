@@ -161,6 +161,7 @@ class FLpipeline:
         ]
         self.create("\n".join(str(res).replace("'", '"') for res in result))
 
+        # stockage des resultats des tests
         for entry in result:
            node_name = entry['node_name']
            classification_report_str = entry['classification_report']

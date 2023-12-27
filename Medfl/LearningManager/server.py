@@ -167,7 +167,9 @@ class FlowerServer:
         Run the federated learning process using Flower simulation.
         """
          # Increase the object store memory to the minimum allowed value or higher
-        ray_init_args = {"include_dashboard": False, "object_store_memory": 78643200}
+        ray_init_args = {"include_dashboard": False
+                        #  , "object_store_memory": 78643200
+                        }
 
         fl.simulation.start_simulation(
             client_fn=self.client_fn,
