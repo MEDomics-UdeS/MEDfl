@@ -9,7 +9,7 @@ DELETE_DATASET = """
 """
 
 SELECT_ALL_DATASET_NAMES = """
-    SELECT DISTINCT DataSetName FROM DataSets
+    SELECT DISTINCT DataSetName,NodeId FROM DataSets
 """
 
 SELECT_DATASET_BY_NAME = """

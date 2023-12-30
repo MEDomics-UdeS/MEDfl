@@ -5,6 +5,7 @@ from .net_helper import *
 from .net_manager_queries import *
 from Medfl.LearningManager.utils import params
 
+
 class Node:
     """
     A class representing a node in the network.
@@ -43,6 +44,7 @@ class Node:
             raise TypeError("test_fraction argument must be a float")
 
     def create_node(self, NetId: int):
+        print(self.train)
         """Create a node in the database."""
         self.engine.execute(
             text(INSERT_NODE_QUERY.format(self.name, NetId, self.train))
@@ -90,7 +92,7 @@ class Node:
             )
         return node_dataset
 
-    def upload_dataset(self, dataset_name: str, path_to_csv: str  = params['path_to_test_csv']):
+    def upload_dataset(self, dataset_name: str, path_to_csv: str = params['path_to_test_csv']):
         """Upload the dataset to the database for the node."""
         data_df = pd.read_csv(path_to_csv)
 
@@ -108,6 +110,19 @@ class Node:
             )
             query = query_1[:-1] + ")" + query_2[:-1] + ")"
             self.engine.execute(text(query))
+
+    def assign_dataset(self, dataset_name):
+        """Assigning existing dataSet to node"""
+
+        nodeId = get_nodeid_from_name(self.name)
+        query = f"UPDATE DataSets SET nodeId = {nodeId} WHERE DataSetName = '{dataset_name}'"
+        self.engine.execute(text(query))
+
+    def unassign_dataset(self, dataset_name):
+        """unssigning existing dataSet to node"""
+
+        query = f"UPDATE DataSets SET nodeId = {-1} WHERE DataSetName = '{dataset_name}'"
+        self.engine.execute(text(query))
 
     def list_alldatasets(self):
         """List all datasets associated with the node."""
