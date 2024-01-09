@@ -6,10 +6,11 @@ from .net_helper import *
 from .net_manager_queries import (CREATE_MASTER_DATASET_TABLE_QUERY,
                                   DELETE_NETWORK_QUERY,
                                   INSERT_NETWORK_QUERY, LIST_ALL_NODES_QUERY,
-                                  UPDATE_NETWORK_QUERY)
+                                  UPDATE_NETWORK_QUERY, GET_NETWORK_QUERY)
 from .node import Node
-import  pandas as pd
+import pandas as pd
 from Medfl.LearningManager.utils import params
+
 
 class Network:
     """
@@ -20,7 +21,7 @@ class Network:
         mtable_exists (int): An integer flag indicating whether the MasterDataset table exists (1) or not (0).
     """
 
-    def __init__(self, name: str):
+    def __init__(self, name: str = ""):
         """
         Initialize a Network instance.
 
@@ -42,6 +43,27 @@ class Network:
         my_eng.execute(text(INSERT_NETWORK_QUERY.format(name=self.name)))
         self.id = get_netid_from_name(self.name)
 
+    def use_network(self, network_name: str):
+        """Use a network in the database."""
+        network =  pd.read_sql(
+            text(GET_NETWORK_QUERY.format(name=network_name)),
+            my_eng,
+        )
+
+        if(network.NetId[0]):
+            self.name = network.NetName[0]
+            self.id = network.NetId[0]
+            self.mtable_exists = int(master_table_exists())
+            self.validate()
+            return self
+        else : 
+            return None
+
+        
+        
+
+
+
     def delete_network(self):
         """Delete the network from the database."""
         my_eng.execute(text(DELETE_NETWORK_QUERY.format(name=self.name)))
@@ -62,7 +84,7 @@ class Network:
             text(LIST_ALL_NODES_QUERY.format(name=self.name)), my_eng
         )
 
-    def create_master_dataset(self, path_to_csv : str = 'D:\ESI\\3CS\PFE\last_year\Code\MEDfl\\notebooks\sapsii_score_knnimputed_eicu.csv' ):
+    def create_master_dataset(self, path_to_csv: str = 'D:\ESI\\3CS\PFE\last_year\Code\MEDfl\\notebooks\sapsii_score_knnimputed_eicu.csv'):
         """
         Create the MasterDataset table and insert dataset values.
 

@@ -1,5 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
+
+from .utils import *
 
 # Replace this with your actual code for data collection
 results_dict = {
@@ -58,3 +61,116 @@ class AccuracyLossPlotter:
             plt.legend()
             plt.grid(True)
             plt.show()
+
+    @staticmethod
+    def plot_global_confusion_matrix(pipeline_name: str):
+        # Get the id of the pipeline by name
+        pipeline_id = get_pipeline_from_name(pipeline_name)
+        # get the confusion matrix pf the pipeline
+        confusion_matrix = get_pipeline_confusion_matrix(pipeline_id)
+
+        # Extracting confusion matrix values
+        TP = confusion_matrix['TP']
+        FP = confusion_matrix['FP']
+        FN = confusion_matrix['FN']
+        TN = confusion_matrix['TN']
+
+        # Creating a matrix for visualization
+        matrix = [[TN, FP],
+                  [FN, TP]]
+
+        # Plotting the confusion matrix as a heatmap
+        plt.figure(figsize=(6, 4))
+        sns.heatmap(matrix, annot=True, fmt='d', cmap='Blues',
+                    xticklabels=['Predicted Negative', 'Predicted Positive'],
+                    yticklabels=['Actual Negative', 'Actual Positive'])
+        plt.title('Global Confusion Matrix')
+        plt.xlabel('Predicted label')
+        plt.ylabel('True label')
+        plt.tight_layout()
+
+        # Display the confusion matrix heatmap
+        plt.show()
+
+    @staticmethod
+    def plot_confusion_Matrix_by_node(node_name: str, pipeline_name: str):
+        # Get the id of the pipeline by name
+        pipeline_id = get_pipeline_from_name(pipeline_name)
+        # get the confusion matrix pf the pipeline
+        confusion_matrix = get_node_confusion_matrix(
+            pipeline_id, node_name=node_name)
+
+        # Extracting confusion matrix values
+        TP = confusion_matrix['TP']
+        FP = confusion_matrix['FP']
+        FN = confusion_matrix['FN']
+        TN = confusion_matrix['TN']
+
+        # Creating a matrix for visualization
+        matrix = [[TN, FP],
+                  [FN, TP]]
+
+        # Plotting the confusion matrix as a heatmap
+        plt.figure(figsize=(6, 4))
+        sns.heatmap(matrix, annot=True, fmt='d', cmap='Blues',
+                    xticklabels=['Predicted Negative', 'Predicted Positive'],
+                    yticklabels=['Actual Negative', 'Actual Positive'])
+        plt.title('Confusion Matrix of node: '+node_name)
+        plt.xlabel('Predicted label')
+        plt.ylabel('True label')
+        plt.tight_layout()
+
+        # Display the confusion matrix heatmap
+        plt.show()
+        return
+    
+    @staticmethod
+    def plot_classification_report(pipeline_name: str):
+        colors = ['#FF5733', '#6A5ACD', '#3CB371', '#FFD700', '#FFA500', '#8A2BE2', '#00FFFF', '#FF00FF', '#A52A2A', '#00FF00']
+
+        # Get the id of the pipeline by name
+        pipeline_id = get_pipeline_from_name(pipeline_name)
+
+        pipeline_results = get_pipeline_result(pipeline_id)
+
+        nodesList = pipeline_results['nodename']
+        classificationReports = []
+
+        for index, node in enumerate(nodesList):
+            classificationReports.append({
+                'Accuracy': pipeline_results['accuracy'][index],
+                'Sensitivity/Recall': pipeline_results['sensivity'][index],
+                'PPV/Precision': pipeline_results['ppv'][index],
+                'NPV': pipeline_results['npv'][index],
+                'F1-score': pipeline_results['f1score'][index],
+                'False positive rate': pipeline_results['fpr'][index],
+                'True positive rate': pipeline_results['tpr'][index]
+            })
+
+        metric_labels = list(classificationReports[0].keys())  # Assuming both reports have the same keys
+
+        # Set the positions of the bars on the x-axis
+        x = np.arange(len(metric_labels))
+
+        # Set the width of the bars
+        width = 0.35
+
+        plt.figure(figsize=(12, 6))
+
+        for index, report in enumerate(classificationReports):
+            metric = list(report.values())
+            plt.bar(x + (index - len(nodesList) / 2) * width / len(nodesList), metric, width / len(nodesList),
+                    label=nodesList[index], color=colors[index % len(colors)])
+
+        # Adding labels, title, and legend
+        plt.xlabel('Metrics')
+        plt.ylabel('Values')
+        plt.title('Comparison of Classification Report Metrics between Nodes')
+        plt.xticks(ticks=x, labels=metric_labels, rotation=45)
+        plt.legend()
+
+        # Show plot
+        plt.tight_layout()
+        plt.show()
+
+        return 

@@ -1,4 +1,6 @@
 from sklearn.preprocessing import LabelEncoder
+from sklearn.impute import SimpleImputer
+
 from sqlalchemy import text
 
 import torch
@@ -29,26 +31,46 @@ def process_eicu(data_df):
 
 
 # remove indiserd columns after reading from the DB
-def process_data_after_reading(data):
-    # read_those vars from user instead
+def process_data_after_reading(data, output, fill_strategy="mean",  fit_encode=[], to_drop=[]):
+
+    # Check if there is a DataSet assigned to the node
+    if (len(data) == 0):
+        raise "Node doesn't Have dataSet"
+
     encoder = LabelEncoder()
-    data["site_hospital"] = encoder.fit_transform(data["site_hospital"])
-    data["site_region"] = encoder.fit_transform(data["site_region"])
-    y = data["event_death"]
+    # En Code some columns
+    for s in fit_encode:
+        try:
+            data[s] = encoder.fit_transform(data[s])
+        except:
+            raise print(s)
+
+    # The output of the DATA
+    y = data[output]
+
+    X = data
     # remove indisered columns when reading the dataframe from the DB
+    for column in to_drop:
+        try:
+            X = X.drop(
+                [column], axis=1
+            )
+        except:
+            raise ValueError("Error occured while droping column : " + column)
 
-    try:
-        # remove column from DataSets table
-        X = data.drop(
-            ["DataSetId", "DataSetName", "id", "event_death", "NodeId"], axis=1
-        )
-    except:
-        # remove column from MasterDataset table
-        X = data.drop(["PatientId", "id", "event_death"], axis=1)
+    
+    # # Get the DATAset Features
+    # features = [col for col in X.columns if col != output]
 
-    X, y = torch.tensor(X.values, dtype=torch.float32), torch.tensor(
-        y.values, dtype=torch.float32
-    )
+    # # Impute missing values using the mean strategy
+    # try:
+    #     imputer = SimpleImputer(strategy=fill_strategy)
+    #     X[features] = imputer.fit_transform(X[features])
+    # except:
+    #     print()
+
+    X = torch.tensor(X.values, dtype=torch.float32)
+    y = torch.tensor(y.values, dtype=torch.float32)
     data = TensorDataset(X, y)
 
     return data
@@ -122,5 +144,3 @@ def master_table_exists():
         ),
         my_eng,
     ).values[0][0]
-
-

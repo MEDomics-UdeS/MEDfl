@@ -7,6 +7,10 @@ from sklearn.metrics import *
 from yaml.loader import SafeLoader
 
 from scripts.base import *
+import json
+
+
+import pandas as pd
 
 yaml_path = pkg_resources.resource_filename(__name__, "params.yaml")
 with open(yaml_path) as g:
@@ -88,3 +92,62 @@ def empty_db():
     my_eng.execute(text(f"ALTER TABLE {'FLsetup'} AUTO_INCREMENT = 1"))
     my_eng.execute(text(f"ALTER TABLE {'FLpipeline'} AUTO_INCREMENT = 1"))
     my_eng.execute(text(f"DELETE FROM {'testresults'}"))
+    my_eng.execute(text(f"DROP TABLE {'masterdataset'}"))
+
+def get_pipeline_from_name(name):
+    NodeId = int(
+        pd.read_sql(
+            text(f"SELECT id FROM flpipeline WHERE name = '{name}'"), my_eng
+        ).iloc[0, 0]
+    )
+    return NodeId
+
+def get_pipeline_confusion_matrix(pipeline_id):
+    data = pd.read_sql(
+            text(f"SELECT confusionmatrix FROM testresults WHERE pipelineid = '{pipeline_id}'"), my_eng
+        )
+    
+    # Convert the column of strings into a list of dictionaries representing confusion matrices
+    confusion_matrices = [
+    json.loads(matrix.replace("'", "\"")) for matrix in data['confusionmatrix']
+    ]
+
+    # Initialize variables for global confusion matrix
+    global_TP = global_FP = global_FN = global_TN = 0
+
+    # Iterate through each dictionary and sum the corresponding values for each category
+    for matrix in confusion_matrices:
+        global_TP += matrix['TP']
+        global_FP += matrix['FP']
+        global_FN += matrix['FN']
+        global_TN += matrix['TN']
+
+    # Create a global confusion matrix as a dictionary
+    global_confusion_matrix = {
+        'TP': global_TP,
+        'FP': global_FP,
+        'FN': global_FN,
+        'TN': global_TN
+    }
+    # Return the list of dictionaries representing confusion matrices
+    return global_confusion_matrix
+
+def get_node_confusion_matrix(pipeline_id , node_name):
+    data = pd.read_sql(
+            text(f"SELECT confusionmatrix FROM testresults WHERE pipelineid = '{pipeline_id}' AND nodename = '{node_name}'"), my_eng
+        )
+    
+    # Convert the column of strings into a list of dictionaries representing confusion matrices
+    confusion_matrices = [
+    json.loads(matrix.replace("'", "\"")) for matrix in data['confusionmatrix']
+    ]
+
+  
+    # Return the list of dictionaries representing confusion matrices
+    return confusion_matrices[0]
+
+def get_pipeline_result(pipeline_id):
+    data = pd.read_sql(
+            text(f"SELECT * FROM testresults WHERE pipelineid = '{pipeline_id}'"), my_eng
+        )
+    return data

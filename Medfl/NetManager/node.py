@@ -74,9 +74,7 @@ class Node:
         """Get the dataset for the node based on the given column name."""
         NodeId = get_nodeid_from_name(self.name)
         if column_name is not None:
-            print(
-                SELECT_DATASET_BY_COLUMN_QUERY.format(column_name, self.name)
-            )
+            
             node_dataset = pd.read_sql(
                 text(
                     SELECT_DATASET_BY_COLUMN_QUERY.format(
@@ -85,6 +83,7 @@ class Node:
                 ),
                 self.engine,
             )
+             
         else:
             node_dataset = pd.read_sql(
                 text(SELECT_DATASET_BY_NODE_ID_QUERY.format(NodeId)),

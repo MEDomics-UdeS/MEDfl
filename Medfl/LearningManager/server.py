@@ -54,6 +54,7 @@ class FlowerServer:
         num_clients: int,
         fed_dataset: FederatedDataset,
         diff_privacy: bool = False,
+        client_resources: Optional[Dict[str, float]] = {'num_cpus': 1, 'num_gpus': 0.0}
     ) -> None:
         """
         Initialize a FlowerServer object with the specified parameters.
@@ -77,6 +78,7 @@ class FlowerServer:
         self.num_clients = num_clients
         self.fed_dataset = fed_dataset
         self.strategy = strategy
+        self.client_resources = client_resources
         setattr(
             self.strategy.strategy_object,
             "min_available_clients",
@@ -168,7 +170,7 @@ class FlowerServer:
         """
          # Increase the object store memory to the minimum allowed value or higher
         ray_init_args = {"include_dashboard": False
-                        #  , "object_store_memory": 78643200
+                         , "object_store_memory": 78643200
                         }
 
         fl.simulation.start_simulation(
@@ -177,6 +179,7 @@ class FlowerServer:
             config=fl.server.ServerConfig(self.num_rounds),
             strategy=self.strategy.strategy_object,
             ray_init_args=ray_init_args,
+            client_resources = self.client_resources
         )
 
 

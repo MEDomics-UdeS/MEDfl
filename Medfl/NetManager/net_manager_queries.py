@@ -37,6 +37,8 @@ INSERT_NETWORK_QUERY = "INSERT INTO Networks(NetName) VALUES ('{name}')"
 # SQL query to delete a network
 DELETE_NETWORK_QUERY = "DELETE FROM Networks WHERE NetName = '{name}'"
 
+# SQL query to delete a network
+GET_NETWORK_QUERY = "SELECT * FROM Networks WHERE NetName = '{name}'"
 
 
 # SQL query to update a network
@@ -72,6 +74,11 @@ DELETE_FLSETUP_QUERY = """
     DELETE FROM FLsetup
     WHERE name = :name
 """
+
+UPDATE_FLSETUP_QUERY = UPDATE_NETWORK_QUERY = (
+    "UPDATE FLsetup SET column_name ='{column_name}' WHERE name ='{FLsetupName}'"
+)
+
 
 READ_SETUP_QUERY = """
     SELECT * FROM FLsetup

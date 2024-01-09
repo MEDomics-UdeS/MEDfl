@@ -1,7 +1,7 @@
 from datetime import datetime
 
 
-from torch.utils.data import random_split, DataLoader,Dataset
+from torch.utils.data import random_split, DataLoader, Dataset
 
 from Medfl.LearningManager.federated_dataset import FederatedDataset
 from .net_helper import *
@@ -76,6 +76,7 @@ class FLsetup:
         res = pd.read_sql(
             text(READ_SETUP_QUERY), my_eng, params={"flsetup_id": FLsetupId}
         ).iloc[0]
+        
         network_res = pd.read_sql(
             text(READ_NETWORK_BY_ID_QUERY),
             my_eng,
@@ -87,6 +88,8 @@ class FLsetup:
         if res["column_name"] == str(None):
             res["column_name"] = None
         setattr(fl_setup, "column_name", res["column_name"])
+        setattr(fl_setup, "id", res["FLsetupId"])
+
         return fl_setup
 
     @staticmethod
@@ -118,8 +121,18 @@ class FLsetup:
             params_dict["test_nodes"],
         )
         self.column_name = column_name
-        self.network.create_network()
+        self.auto = 1
+
+        # Update the Column name of the auto flSetup
+        query = f"UPDATE FLsetup SET column_name = '{column_name}' WHERE name = '{self.name}'"
+        my_eng.execute(text(query))
+        
+
+        # Add Network to DB
+        # self.network.create_network()
+
         netid = get_netid_from_name(self.network.name)
+
         assert self.network.mtable_exists == 1
         node_names = pd.read_sql(
             text(READ_DISTINCT_NODES_QUERY.format(column_name)), my_eng
@@ -135,10 +148,13 @@ class FLsetup:
     def create_dataloader_from_node(
         self,
         node: Node,
+        output,
+        fill_strategy="mean",  fit_encode=[], to_drop=[],
         train_batch_size: int = 32,
         test_batch_size: int = 1,
         split_frac: float = 0.2,
         dataset: Dataset = None,
+
     ):
         """Create DataLoader from a Node.
 
@@ -155,10 +171,11 @@ class FLsetup:
         if dataset is None:
             if self.column_name is not None:
                 dataset = process_data_after_reading(
-                    node.get_dataset(self.column_name)
+                    node.get_dataset(self.column_name), output, fill_strategy=fill_strategy, fit_encode=fit_encode, to_drop=to_drop
                 )
             else:
-                dataset = process_data_after_reading(node.get_dataset())
+                dataset = process_data_after_reading(
+                    node.get_dataset(), output, fill_strategy=fill_strategy, fit_encode=fit_encode, to_drop=to_drop)
 
         dataset_size = len(dataset)
         traindata_size = int(dataset_size * (1 - split_frac))
@@ -171,11 +188,12 @@ class FLsetup:
         return trainloader, testloader
 
     def create_federated_dataset(
-        self, val_frac=0.1, test_frac=0.2
+        self, output, fill_strategy="mean",  fit_encode=[], to_drop=[], val_frac=0.1, test_frac=0.2
     ) -> FederatedDataset:
         """Create a federated dataset.
 
         Args:
+            output (string): the output feature of the dataset
             val_frac (float): The fraction of data to be used for validation.
             test_frac (float): The fraction of data to be used for testing.
 
@@ -202,16 +220,20 @@ class FLsetup:
         test_nodes = [Node(val[0], 0) for val in test_nodes.values.tolist()]
 
         trainloaders, valloaders, testloaders = [], [], []
+        # if len(test_nodes) == 0:
+        #     raise "test node empty"
         if test_nodes is None:
-            _, testloader = self.create_dataloader_from_node(train_nodes[0])
+            _, testloader = self.create_dataloader_from_node(
+                train_nodes[0], output, fill_strategy=fill_strategy, fit_encode=fit_encode, to_drop=to_drop)
             testloaders.append(testloader)
         else:
             for train_node in train_nodes:
                 train_valloader, testloader = self.create_dataloader_from_node(
-                    train_node
-                )
+                    train_node, output, fill_strategy=fill_strategy,
+                    fit_encode=fit_encode, to_drop=to_drop,)
                 trainloader, valloader = self.create_dataloader_from_node(
                     train_node,
+                    output, fill_strategy=fill_strategy, fit_encode=fit_encode, to_drop=to_drop,
                     test_batch_size=32,
                     split_frac=val_frac,
                     dataset=train_valloader.dataset,
@@ -222,16 +244,21 @@ class FLsetup:
 
             for test_node in test_nodes:
                 _, testloader = self.create_dataloader_from_node(
-                    test_node, split_frac=1.0
+                    test_node, output, fill_strategy=fill_strategy, fit_encode=fit_encode, to_drop=to_drop, split_frac=1.0
                 )
                 testloaders.append(testloader)
         train_nodes_names = [node.name for node in train_nodes]
-        test_nodes_names = train_nodes_names + [
+        # test_nodes_names = train_nodes_names + [
+        #     node.name for node in test_nodes
+        # ]
+        
+        test_nodes_names = [
             node.name for node in test_nodes
         ]
-        self.create()
 
-        self.id = get_flsetupid_from_name(self.name)
+        # Add FlSetup on to the DataBase
+        # self.create()
+
         # self.network.update_network(FLsetupId=self.id)
         fed_dataset = FederatedDataset(
             self.name + "_Feddataset",
@@ -244,3 +271,15 @@ class FLsetup:
         self.fed_dataset = fed_dataset
         self.fed_dataset.create(self.id)
         return self.fed_dataset
+    
+    
+
+
+    def get_flDataSet(self):
+        
+        return pd.read_sql(
+            text(
+                f"SELECT * FROM feddatasets WHERE FLsetupId = {get_flsetupid_from_name(self.name)}"
+            ),
+            my_eng,
+        )
