@@ -28,22 +28,7 @@ class FlowerServer:
         flower_clients (List[FlowerClient]): A list to store the FlowerClient objects representing individual clients.
 
     Methods:
-        __init__(self, global_model: Model, strategy: Strategy, num_rounds: int, num_clients: int,
-                 fed_dataset: FederatedDataset, diff_privacy: bool = False) -> None:
-            Initialize a FlowerServer object with the specified parameters.
-
-        validate(self) -> None:
-            Validate the attributes of the FlowerServer object.
-
-        client_fn(self, cid) -> FlowerClient:
-            Return a FlowerClient object for a specific client ID.
-
-        evaluate(self, server_round: int, parameters: fl.common.NDArrays,
-                 config: Dict[str, fl.common.Scalar]) -> Optional[Tuple[float, Dict[str, fl.common.Scalar]]]:
-            Evaluate the global model on the validation dataset and update the accuracies and losses.
-
-        run(self) -> None:
-            Run the federated learning process using Flower simulation.
+     
     """
 
     def __init__(

@@ -248,13 +248,13 @@ class FLsetup:
                 )
                 testloaders.append(testloader)
         train_nodes_names = [node.name for node in train_nodes]
-        # test_nodes_names = train_nodes_names + [
-        #     node.name for node in test_nodes
-        # ]
-        
-        test_nodes_names = [
+        test_nodes_names = train_nodes_names + [
             node.name for node in test_nodes
         ]
+        
+        # test_nodes_names = [
+        #     node.name for node in test_nodes
+        # ]
 
         # Add FlSetup on to the DataBase
         # self.create()

@@ -19,10 +19,9 @@ def is_str(data_df, row, x):
 
 
 def process_eicu(data_df):
-    data_df["pao2fio2"].fillna(data_df["pao2fio2"].mean(), inplace=True)
-    data_df["site_region"].fillna(
-        data_df["site_region"].mode()[0], inplace=True
-    )
+    data_df.fillna(data_df.mean(), inplace=True)
+    data_df.fillna('Unknown', inplace=True)
+    
     try:
         data_df = data_df.reset_index()
     except:

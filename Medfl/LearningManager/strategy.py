@@ -17,9 +17,7 @@ class Strategy:
         min_available_clients (int): Minimum number of available clients required to start a round. Default is 2.
 
     Methods:
-        __init__(self, name="FedAvg", fraction_fit=1.0, fraction_evaluate=1.0, min_fit_clients=2,
-                 min_evaluate_clients=2, min_available_clients=2) -> None:
-            Initialize a Strategy object with the specified parameters.
+     
     """
 
     def __init__(

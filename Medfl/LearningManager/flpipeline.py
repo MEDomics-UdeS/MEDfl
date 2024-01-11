@@ -37,18 +37,7 @@ class FLpipeline:
     Methods:
         __init__(self, name: str, description: str, server: FlowerServer) -> None:
             Initialize FLpipeline with the specified name, description, and server.
-        validate(self) -> None:
-            Validate the name, description, and server attributes.
-        create(self, result: str) -> None:
-            Create a new FLpipeline entry in the database with the given result.
-        update(self) -> None:
-            Placeholder method for updating the FLpipeline (not implemented).
-        delete(self) -> None:
-            Placeholder method for deleting the FLpipeline (not implemented).
-        test_by_node(self, node_name: str, test_frac=1) -> dict:
-            Test the FLpipeline by node with the specified test_frac.
-        auto_test(self, test_frac=1) -> List[dict]:
-            Automatically test the FLpipeline on all nodes with the specified test_frac.
+  
 
     """
 
