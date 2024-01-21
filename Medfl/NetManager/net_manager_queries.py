@@ -58,11 +58,23 @@ CREATE TABLE IF NOT EXISTS MasterDataset (
 );
 """
 
+# SQL query to create the datasets table
+CREATE_DATASETS_TABLE_QUERY = """
+CREATE TABLE IF NOT EXISTS Datasets (
+                     DataSetId INT NOT NULL AUTO_INCREMENT, 
+                     DataSetName VARCHAR(255), 
+                     NodeId INT,
+                     {},
+                     PRIMARY KEY (DataSetId), 
+                     FOREIGN KEY (NodeId) REFERENCES Nodes(NodeId)
+);
+"""
+
 # SQL query to insert dataset values
 INSERT_DATASET_VALUES_QUERY = "INSERT INTO MasterDataset({columns}, NodeId) VALUES ('{name}', {nodeId}, {values})"
 
 
-###### FL setup_queries
+# FL setup_queries
 # sql_queries.py
 
 CREATE_FLSETUP_QUERY = """

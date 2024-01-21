@@ -11,6 +11,17 @@ from scripts.base import my_eng
 
 
 def is_str(data_df, row, x):
+    """
+    Check if a column in a DataFrame is of type 'object' and convert the value accordingly.
+
+    Args:
+        data_df (pandas.DataFrame): DataFrame containing the data.
+        row (pandas.Series): Data row.
+        x (str): Column name.
+
+    Returns:
+        str or float: Processed value based on the column type.
+    """
     if data_df[x].dtype == "object":
         x = f"'{row[x]}'"
     else:
@@ -19,6 +30,15 @@ def is_str(data_df, row, x):
 
 
 def process_eicu(data_df):
+    """
+    Process eICU data by filling missing values with mean and replacing NaNs with 'Unknown'.
+
+    Args:
+        data_df (pandas.DataFrame): Input data.
+
+    Returns:
+        pandas.DataFrame: Processed data.
+    """
     data_df.fillna(data_df.mean(), inplace=True)
     data_df.fillna('Unknown', inplace=True)
     
@@ -31,6 +51,19 @@ def process_eicu(data_df):
 
 # remove indiserd columns after reading from the DB
 def process_data_after_reading(data, output, fill_strategy="mean",  fit_encode=[], to_drop=[]):
+    """
+    Process data after reading from the database, including encoding, dropping columns, and creating a PyTorch TensorDataset.
+
+    Args:
+        data (pandas.DataFrame): Input data.
+        output (str): Output column name.
+        fill_strategy (str, optional): Imputation strategy for missing values. Default is "mean".
+        fit_encode (list, optional): List of columns to be label-encoded. Default is an empty list.
+        to_drop (list, optional): List of columns to be dropped from the DataFrame. Default is an empty list.
+
+    Returns:
+        torch.utils.data.TensorDataset: Processed data as a PyTorch TensorDataset.
+    """
 
     # Check if there is a DataSet assigned to the node
     if (len(data) == 0):
@@ -76,6 +109,16 @@ def process_data_after_reading(data, output, fill_strategy="mean",  fit_encode=[
 
 
 def get_nodeid_from_name(name):
+    """
+    Get the NodeId from the Nodes table based on the NodeName.
+
+    Args:
+        name (str): Node name.
+
+    Returns:
+        int or None: NodeId or None if not found.
+    """
+
     NodeId = int(
         pd.read_sql(
             text(f"SELECT NodeId FROM Nodes WHERE NodeName = '{name}'"), my_eng
@@ -85,6 +128,15 @@ def get_nodeid_from_name(name):
 
 
 def get_netid_from_name(name):
+    """
+    Get the Network Id from the Networks table based on the NetName.
+
+    Args:
+        name (str): Network name.
+
+    Returns:
+        int or None: NetId or None if not found.
+    """
     try:
         NetId = int(
             pd.read_sql(
@@ -98,6 +150,15 @@ def get_netid_from_name(name):
 
 
 def get_flsetupid_from_name(name):
+    """
+    Get the FLsetupId from the FLsetup table based on the FL setup name.
+
+    Args:
+        name (str): FL setup name.
+
+    Returns:
+        int or None: FLsetupId or None if not found.
+    """
     try:
         id = int(
             pd.read_sql(
@@ -111,6 +172,15 @@ def get_flsetupid_from_name(name):
 
 
 def get_flpipeline_from_name(name):
+    """
+    Get the FLpipeline Id from the FLpipeline table based on the FL pipeline name.
+
+    Args:
+        name (str): FL pipeline name.
+
+    Returns:
+        int or None: FLpipelineId or None if not found.
+    """
     try:
         id = int(
             pd.read_sql(
@@ -124,6 +194,15 @@ def get_flpipeline_from_name(name):
 
 
 def get_feddataset_id_from_name(name):
+    """
+    Get the Federated dataset Id from the FedDatasets table based on the federated dataset name.
+
+    Args:
+        name (str): Federated dataset name.
+
+    Returns:
+        int or None: FedId or None if not found.
+    """
     try:
         id = int(
             pd.read_sql(
@@ -137,6 +216,13 @@ def get_feddataset_id_from_name(name):
 
 
 def master_table_exists():
+    """
+    Check if the MasterDataset table exists in the database.
+
+    Returns:
+        bool: True if the table exists, False otherwise.
+    """
+    
     return pd.read_sql(
         text(
             " SELECT EXISTS ( SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_NAME = 'MasterDataset' )"

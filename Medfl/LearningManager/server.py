@@ -26,8 +26,6 @@ class FlowerServer:
         accuracies (List[float]): A list to store the accuracy of the global model during each round.
         losses (List[float]): A list to store the loss of the global model during each round.
         flower_clients (List[FlowerClient]): A list to store the FlowerClient objects representing individual clients.
-
-    Methods:
      
     """
 
@@ -152,13 +150,16 @@ class FlowerServer:
     def run(self) -> None:
         """
         Run the federated learning process using Flower simulation.
+
+        Returns:
+            History: The history of the accuracies and losses during the training of each node 
         """
          # Increase the object store memory to the minimum allowed value or higher
         ray_init_args = {"include_dashboard": False
                          , "object_store_memory": 78643200
                         }
 
-        fl.simulation.start_simulation(
+        history = fl.simulation.start_simulation(
             client_fn=self.client_fn,
             num_clients=self.num_clients,
             config=fl.server.ServerConfig(self.num_rounds),
@@ -167,5 +168,5 @@ class FlowerServer:
             client_resources = self.client_resources
         )
 
+        return history
 
-# Rest of the code...

@@ -4,6 +4,7 @@ from Medfl.LearningManager.utils import *
 
 from .net_helper import *
 from .net_manager_queries import (CREATE_MASTER_DATASET_TABLE_QUERY,
+                                  CREATE_DATASETS_TABLE_QUERY,
                                   DELETE_NETWORK_QUERY,
                                   INSERT_NETWORK_QUERY, LIST_ALL_NODES_QUERY,
                                   UPDATE_NETWORK_QUERY, GET_NETWORK_QUERY)
@@ -44,52 +45,72 @@ class Network:
         self.id = get_netid_from_name(self.name)
 
     def use_network(self, network_name: str):
-        """Use a network in the database."""
-        network =  pd.read_sql(
+        """Use a network in the database.
+
+        Parameters:
+            network_name (str): The name of the network to use.
+
+        Returns:
+            Network or None: An instance of the Network class if the network exists, else None.
+        
+        """
+        network = pd.read_sql(
             text(GET_NETWORK_QUERY.format(name=network_name)),
             my_eng,
         )
 
-        if(network.NetId[0]):
+        if (network.NetId[0]):
             self.name = network.NetName[0]
             self.id = network.NetId[0]
             self.mtable_exists = int(master_table_exists())
             self.validate()
             return self
-        else : 
+        else:
             return None
-
-        
-        
-
-
 
     def delete_network(self):
         """Delete the network from the database."""
         my_eng.execute(text(DELETE_NETWORK_QUERY.format(name=self.name)))
 
     def update_network(self, FLsetupId: int):
-        """Update the network's FLsetupId in the database."""
+        """Update the network's FLsetupId in the database.
+        
+        Parameters:
+            FLsetupId (int): The FLsetupId to update.
+        """
         my_eng.execute(
             text(UPDATE_NETWORK_QUERY.format(FLsetupId=FLsetupId, id=self.id))
         )
 
     def add_node(self, node: Node):
-        """Add a node to the network."""
+        """Add a node to the network.
+
+        Parameters:
+            node (Node): The node to add.
+        """
         node.create_node(self.id)
 
     def list_allnodes(self):
-        """List all nodes in the network."""
+        """List all nodes in the network.
+
+        Parameters:
+            None
+
+        Returns:
+            DataFrame: A DataFrame containing information about all nodes in the network.
+        
+        """
         return pd.read_sql(
             text(LIST_ALL_NODES_QUERY.format(name=self.name)), my_eng
         )
 
-    def create_master_dataset(self, path_to_csv: str = 'D:\ESI\\3CS\PFE\last_year\Code\MEDfl\\notebooks\sapsii_score_knnimputed_eicu.csv'):
+    def create_master_dataset(self, path_to_csv: str = params['path_to_master_csv']):
         """
         Create the MasterDataset table and insert dataset values.
 
         :param path_to_csv: Path to the CSV file containing the dataset.
         """
+        print(path_to_csv)
         # Read the CSV file into a Pandas DataFrame
         data_df = pd.read_csv(path_to_csv)
 
@@ -109,6 +130,7 @@ class Network:
             my_eng.execute(
                 text(CREATE_MASTER_DATASET_TABLE_QUERY.format(columns_str))
             )
+            my_eng.execute(text(CREATE_DATASETS_TABLE_QUERY.format(columns_str)))
 
             # Get the list of columns in the DataFrame
 
@@ -130,5 +152,9 @@ class Network:
 
     @staticmethod
     def list_allnetworks():
-        """List all networks in the database."""
+        """List all networks in the database.
+        Returns:
+            DataFrame: A DataFrame containing information about all networks in the database.
+        
+        """
         return pd.read_sql(text("SELECT * FROM Networks"), my_eng)

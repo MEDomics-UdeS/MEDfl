@@ -8,6 +8,7 @@ MEDfl.egg-info/top_level.txt
 Medfl/__init__.py
 Medfl/LearningManager/__init__.py
 Medfl/LearningManager/client.py
+Medfl/LearningManager/dynamicModal.py
 Medfl/LearningManager/federated_dataset.py
 Medfl/LearningManager/flpipeline.py
 Medfl/LearningManager/model.py

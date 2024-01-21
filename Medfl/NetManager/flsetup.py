@@ -276,7 +276,12 @@ class FLsetup:
 
 
     def get_flDataSet(self):
-        
+        """
+        Retrieve the federated dataset associated with the FL setup using the FL setup's name.
+ 
+        Returns:
+            pandas.DataFrame: DataFrame containing the federated dataset information.
+        """
         return pd.read_sql(
             text(
                 f"SELECT * FROM feddatasets WHERE FLsetupId = {get_flsetupid_from_name(self.name)}"

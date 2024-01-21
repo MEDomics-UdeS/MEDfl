@@ -44,8 +44,13 @@ class Node:
             raise TypeError("test_fraction argument must be a float")
 
     def create_node(self, NetId: int):
-        print(self.train)
-        """Create a node in the database."""
+        """Create a node in the database.
+        Parameters:
+            NetId (int): The ID of the network to which the node belongs.
+
+        Returns:
+            None
+        """
         self.engine.execute(
             text(INSERT_NODE_QUERY.format(self.name, NetId, self.train))
         )
@@ -55,7 +60,13 @@ class Node:
         self.engine.execute(text(DELETE_NODE_QUERY.format(self.name)))
 
     def check_dataset_compatibility(self, data_df):
-        """Check if the dataset is compatible with the master dataset."""
+        """Check if the dataset is compatible with the master dataset.
+        Parameters:
+            data_df (DataFrame): The dataset to check.
+
+        Returns:
+            None
+        """
         if master_table_exists() != 1:
             print("MasterDataset doesn't exist")
         else:
@@ -71,7 +82,13 @@ class Node:
         pass
 
     def get_dataset(self, column_name: str = None):
-        """Get the dataset for the node based on the given column name."""
+        """Get the dataset for the node based on the given column name.
+        Parameters:
+            column_name (str, optional): The column name to filter the dataset. Default is None.
+
+        Returns:
+            DataFrame: The dataset associated with the node.
+        """
         NodeId = get_nodeid_from_name(self.name)
         if column_name is not None:
             
@@ -92,7 +109,14 @@ class Node:
         return node_dataset
 
     def upload_dataset(self, dataset_name: str, path_to_csv: str = params['path_to_test_csv']):
-        """Upload the dataset to the database for the node."""
+        """Upload the dataset to the database for the node.
+        Parameters:
+            dataset_name (str): The name of the dataset.
+            path_to_csv (str, optional): Path to the CSV file containing the dataset. Default is the path in params.
+
+        Returns:
+            None
+        """
         data_df = pd.read_csv(path_to_csv)
 
         nodeId = get_nodeid_from_name(self.name)
@@ -110,28 +134,48 @@ class Node:
             query = query_1[:-1] + ")" + query_2[:-1] + ")"
             self.engine.execute(text(query))
 
-    def assign_dataset(self, dataset_name):
-        """Assigning existing dataSet to node"""
+    def assign_dataset(self, dataset_name:str):
+        """Assigning existing dataSet to node
+        Parameters:
+            dataset_name (str): The name of the dataset to assign.
+
+        Returns:
+            None
+        """
 
         nodeId = get_nodeid_from_name(self.name)
         query = f"UPDATE DataSets SET nodeId = {nodeId} WHERE DataSetName = '{dataset_name}'"
         self.engine.execute(text(query))
 
-    def unassign_dataset(self, dataset_name):
-        """unssigning existing dataSet to node"""
+    def unassign_dataset(self, dataset_name:str):
+        """unssigning existing dataSet to node
+        Parameters:
+            dataset_name (str): The name of the dataset to assign.
+
+        Returns:
+            None
+        """
 
         query = f"UPDATE DataSets SET nodeId = {-1} WHERE DataSetName = '{dataset_name}'"
         self.engine.execute(text(query))
 
     def list_alldatasets(self):
-        """List all datasets associated with the node."""
+        """List all datasets associated with the node.
+        Returns:
+            DataFrame: A DataFrame containing information about all datasets associated with the node.
+        
+        """
         return pd.read_sql(
             text(SELECT_ALL_DATASETS_QUERY.format(self.name)), my_eng
         )
 
     @staticmethod
     def list_allnodes():
-        """List all nodes in the database."""
+        """List all nodes in the database.
+        Returns:
+            DataFrame: A DataFrame containing information about all nodes in the database.
+        
+        """
         query = text(SELECT_ALL_NODES_QUERY)
         res = pd.read_sql(query, my_eng)
         return res

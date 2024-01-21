@@ -32,7 +32,26 @@ Client should have
 
 
 class AccuracyLossPlotter:
+    """
+    A utility class for plotting accuracy and loss metrics based on experiment results.
+
+    Args:
+        results_dict (dict): Dictionary containing experiment results organized by parameters and metrics.
+
+    Attributes:
+        results_dict (dict): Dictionary containing experiment results organized by parameters and metrics.
+        parameters (list): List of unique parameters in the experiment results.
+        metrics (list): List of unique metrics in the experiment results.
+        iterations (range): Range of iterations (rounds or epochs) in the experiment.
+    """
+
     def __init__(self, results_dict):
+        """
+        Initialize the AccuracyLossPlotter with experiment results.
+
+        Args:
+            results_dict (dict): Dictionary containing experiment results organized by parameters and metrics.
+        """
         self.results_dict = results_dict
         self.parameters = list(
             set([param[0] for param in results_dict.keys()])
@@ -41,6 +60,10 @@ class AccuracyLossPlotter:
         self.iterations = range(1, len(list(results_dict.values())[0]) + 1)
 
     def plot_accuracy_loss(self):
+        """
+        Plot accuracy and loss metrics for different parameters.
+        """
+
         plt.figure(figsize=(8, 6))
 
         for param in self.parameters:
@@ -64,6 +87,15 @@ class AccuracyLossPlotter:
 
     @staticmethod
     def plot_global_confusion_matrix(pipeline_name: str):
+        """
+        Plot a global confusion matrix based on pipeline results.
+
+        Args:
+            pipeline_name (str): Name of the pipeline.
+
+        Returns:
+            None
+        """
         # Get the id of the pipeline by name
         pipeline_id = get_pipeline_from_name(pipeline_name)
         # get the confusion matrix pf the pipeline
@@ -94,6 +126,17 @@ class AccuracyLossPlotter:
 
     @staticmethod
     def plot_confusion_Matrix_by_node(node_name: str, pipeline_name: str):
+        """
+        Plot a confusion matrix for a specific node in the pipeline.
+
+        Args:
+            node_name (str): Name of the node.
+            pipeline_name (str): Name of the pipeline.
+
+        Returns:
+            None
+        """
+
         # Get the id of the pipeline by name
         pipeline_id = get_pipeline_from_name(pipeline_name)
         # get the confusion matrix pf the pipeline
@@ -126,6 +169,16 @@ class AccuracyLossPlotter:
     
     @staticmethod
     def plot_classification_report(pipeline_name: str):
+        """
+        Plot a comparison of classification report metrics between nodes.
+
+        Args:
+            pipeline_name (str): Name of the pipeline.
+
+        Returns:
+            None
+        """
+
         colors = ['#FF5733', '#6A5ACD', '#3CB371', '#FFD700', '#FFA500', '#8A2BE2', '#00FFFF', '#FF00FF', '#A52A2A', '#00FF00']
 
         # Get the id of the pipeline by name

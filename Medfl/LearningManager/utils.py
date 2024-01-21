@@ -18,6 +18,18 @@ with open(yaml_path) as g:
 
 
 def custom_classification_report(y_true, y_pred):
+    """
+    Compute custom classification report metrics including accuracy, sensitivity, specificity, precision, NPV,
+    F1-score, false positive rate, and true positive rate.
+
+    Args:
+        y_true (array-like): True labels.
+        y_pred (array-like): Predicted labels.
+
+    Returns:
+        dict: A dictionary containing custom classification report metrics.
+    """
+
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
 
     # Accuracy
@@ -66,6 +78,18 @@ def custom_classification_report(y_true, y_pred):
 
 
 def test(model, test_loader, device=torch.device("cpu")):
+    """
+    Evaluate a model using a test loader and return a custom classification report.
+
+    Args:
+        model (torch.nn.Module): PyTorch model to evaluate.
+        test_loader (torch.utils.data.DataLoader): DataLoader for the test dataset.
+        device (torch.device, optional): Device for model evaluation. Default is "cpu".
+
+    Returns:
+        dict: A dictionary containing custom classification report metrics.
+    """
+
     model.eval()
     with torch.no_grad():
         X_test, y_test = test_loader.dataset[:][0], test_loader.dataset[:][1]
@@ -78,23 +102,40 @@ column_map = {"object": "VARCHAR(255)", "int64": "INT", "float64": "FLOAT"}
 
 
 def empty_db():
-    my_eng.execute(text(f"DELETE FROM  {'DataSets'}"))
+    """
+    Empty the database by deleting records from multiple tables and resetting auto-increment counters.
+
+    Returns:
+        None
+    """
+
+    # my_eng.execute(text(f"DELETE FROM  {'DataSets'}"))
     my_eng.execute(text(f"DELETE FROM {'Nodes'}"))
     my_eng.execute(text(f"DELETE FROM {'FedDatasets'}"))
     my_eng.execute(text(f"DELETE FROM {'Networks'}"))
     my_eng.execute(text(f"DELETE FROM {'FLsetup'}"))
 
     my_eng.execute(text(f"DELETE FROM {'FLpipeline'}"))
-    my_eng.execute(text(f"ALTER TABLE {'DataSets'} AUTO_INCREMENT = 1"))
     my_eng.execute(text(f"ALTER TABLE {'Nodes'} AUTO_INCREMENT = 1"))
     my_eng.execute(text(f"ALTER TABLE {'Networks'} AUTO_INCREMENT = 1"))
     my_eng.execute(text(f"ALTER TABLE {'FedDatasets'} AUTO_INCREMENT = 1"))
     my_eng.execute(text(f"ALTER TABLE {'FLsetup'} AUTO_INCREMENT = 1"))
     my_eng.execute(text(f"ALTER TABLE {'FLpipeline'} AUTO_INCREMENT = 1"))
     my_eng.execute(text(f"DELETE FROM {'testresults'}"))
-    my_eng.execute(text(f"DROP TABLE {'masterdataset'}"))
+    my_eng.execute(text(f"DROP TABLE IF EXISTS {'masterdataset'}"))
+    my_eng.execute(text(f"DROP TABLE IF EXISTS {'datasets'}"))
 
 def get_pipeline_from_name(name):
+    """
+    Get the pipeline ID from its name in the database.
+
+    Args:
+        name (str): Name of the pipeline.
+
+    Returns:
+        int: ID of the pipeline.
+    """
+
     NodeId = int(
         pd.read_sql(
             text(f"SELECT id FROM flpipeline WHERE name = '{name}'"), my_eng
@@ -103,6 +144,16 @@ def get_pipeline_from_name(name):
     return NodeId
 
 def get_pipeline_confusion_matrix(pipeline_id):
+    """
+    Get the global confusion matrix for a pipeline based on test results.
+
+    Args:
+        pipeline_id (int): ID of the pipeline.
+
+    Returns:
+        dict: A dictionary representing the global confusion matrix.
+    """
+
     data = pd.read_sql(
             text(f"SELECT confusionmatrix FROM testresults WHERE pipelineid = '{pipeline_id}'"), my_eng
         )
@@ -133,6 +184,17 @@ def get_pipeline_confusion_matrix(pipeline_id):
     return global_confusion_matrix
 
 def get_node_confusion_matrix(pipeline_id , node_name):
+    """
+    Get the confusion matrix for a specific node in a pipeline based on test results.
+
+    Args:
+        pipeline_id (int): ID of the pipeline.
+        node_name (str): Name of the node.
+
+    Returns:
+        dict: A dictionary representing the confusion matrix for the specified node.
+    """
+
     data = pd.read_sql(
             text(f"SELECT confusionmatrix FROM testresults WHERE pipelineid = '{pipeline_id}' AND nodename = '{node_name}'"), my_eng
         )
@@ -147,6 +209,15 @@ def get_node_confusion_matrix(pipeline_id , node_name):
     return confusion_matrices[0]
 
 def get_pipeline_result(pipeline_id):
+    """
+    Get the test results for a pipeline.
+
+    Args:
+        pipeline_id (int): ID of the pipeline.
+
+    Returns:
+        pandas.DataFrame: DataFrame containing test results for the specified pipeline.
+    """
     data = pd.read_sql(
             text(f"SELECT * FROM testresults WHERE pipelineid = '{pipeline_id}'"), my_eng
         )
