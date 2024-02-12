@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Medfl.NetManager.flsetup &mdash; medfl_docs 0.1.0 documentation</title>
+  <title>Medfl.NetManager.flsetup &mdash; MEDfl 0.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/custom.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=c87d750e" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/custom.css" />
       <link rel="stylesheet" type="text/css" href="../../../_static/dark_mode_css/general.css?v=c0a7eb24" />
       <link rel="stylesheet" type="text/css" href="../../../_static/dark_mode_css/dark.css?v=70edf1c7" />
@@ -38,6 +38,7 @@
           
           <a href="../../../index.html">
             
+              <img src="../../../_static/MEDomics.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -47,7 +48,24 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Documentation.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../configuration_file.html">Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../csv_file.html">CSV File</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials.html#database-management">Database management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials.html#netmanager">NetManager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials.html#transfer-learning">Transfer Learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials.html#learning-manager">Learning Manager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials.html#learning-results">Learning Results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials.html#model-choice">Model choice</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../modules.html">Medfl</a></li>
 </ul>
@@ -58,7 +76,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../../index.html">medfl_docs</a>
+          <a href="../../../index.html">MEDfl</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -241,10 +259,18 @@
 
         <span class="n">nodes</span> <span class="o">=</span> <span class="p">[</span><span class="n">Node</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">node_names</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">()]</span>
 
+        <span class="n">used_nodes</span> <span class="o">=</span> <span class="p">[]</span>
+
         <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
-            <span class="n">node</span><span class="o">.</span><span class="n">train</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">train_nodes</span> <span class="k">else</span> <span class="mi">0</span>
-            <span class="n">node</span><span class="o">.</span><span class="n">create_node</span><span class="p">(</span><span class="n">netid</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">nodes</span></div>
+            <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">train_nodes</span><span class="p">:</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">train</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">create_node</span><span class="p">(</span><span class="n">netid</span><span class="p">)</span>
+                <span class="n">used_nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">test_nodes</span><span class="p">:</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">train</span> <span class="o">=</span><span class="mi">0</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">create_node</span><span class="p">(</span><span class="n">netid</span><span class="p">)</span> 
+                <span class="n">used_nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">used_nodes</span></div>
 
 
 <div class="viewcode-block" id="FLsetup.create_dataloader_from_node">
@@ -307,6 +333,12 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            FederatedDataset: The FederatedDataset instance containing train, validation, and test data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">column_name</span><span class="p">:</span>
+            <span class="n">to_drop</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;DataSetName&quot;</span> <span class="p">,</span> <span class="s2">&quot;NodeId&quot;</span> <span class="p">,</span> <span class="s2">&quot;DataSetId&quot;</span><span class="p">])</span>
+        <span class="k">else</span> <span class="p">:</span>
+            <span class="n">to_drop</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;PatientId&quot;</span><span class="p">])</span> 
+            
         <span class="n">netid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">network</span><span class="o">.</span><span class="n">id</span>
         <span class="n">train_nodes</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span>
             <span class="n">text</span><span class="p">(</span>
