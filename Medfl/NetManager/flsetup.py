@@ -140,10 +140,18 @@ class FLsetup:
 
         nodes = [Node(val[0], 1) for val in node_names.values.tolist()]
 
+        used_nodes = []
+
         for node in nodes:
-            node.train = 1 if node.name in train_nodes else 0
-            node.create_node(netid)
-        return nodes
+            if node.name in train_nodes:
+                node.train = 1
+                node.create_node(netid)
+                used_nodes.append(node)
+            if node.name in test_nodes:
+                node.train =0
+                node.create_node(netid) 
+                used_nodes.append(node)
+        return used_nodes
 
     def create_dataloader_from_node(
         self,
@@ -200,6 +208,12 @@ class FLsetup:
         Returns:
             FederatedDataset: The FederatedDataset instance containing train, validation, and test data.
         """
+        
+        if not self.column_name:
+            to_drop.extend(["DataSetName" , "NodeId" , "DataSetId"])
+        else :
+            to_drop.extend(["PatientId"]) 
+            
         netid = self.network.id
         train_nodes = pd.read_sql(
             text(

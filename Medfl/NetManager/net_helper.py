@@ -6,6 +6,8 @@ from sqlalchemy import text
 import torch
 import pandas as pd
 from torch.utils.data import TensorDataset
+import numpy as np
+
 
 from scripts.base import my_eng
 
@@ -39,13 +41,21 @@ def process_eicu(data_df):
     Returns:
         pandas.DataFrame: Processed data.
     """
-    data_df.fillna(data_df.mean(), inplace=True)
-    data_df.fillna('Unknown', inplace=True)
-    
+    # Identify numeric and non-numeric columns
+    numeric_columns = data_df.select_dtypes(include=[np.number]).columns
+    non_numeric_columns = data_df.select_dtypes(exclude=[np.number]).columns
+
+    # Fill NaN in numeric columns with mean
+    data_df[numeric_columns] = data_df[numeric_columns].fillna(data_df[numeric_columns].mean())
+
+    # Fill NaN in non-numeric columns with 'Unknown'
+    data_df[non_numeric_columns] = data_df[non_numeric_columns].fillna('Unknown')
+
     try:
-        data_df = data_df.reset_index()
+        data_df = data_df.reset_index(drop=True)
     except:
         pass
+
     return data_df
 
 
@@ -81,25 +91,27 @@ def process_data_after_reading(data, output, fill_strategy="mean",  fit_encode=[
     y = data[output]
 
     X = data
+
+    
     # remove indisered columns when reading the dataframe from the DB
     for column in to_drop:
         try:
             X = X.drop(
                 [column], axis=1
             )
-        except:
-            raise ValueError("Error occured while droping column : " + column)
+        except Exception as e:
+            raise e
 
     
-    # # Get the DATAset Features
-    # features = [col for col in X.columns if col != output]
+    # Get the DATAset Features
+    features = [col for col in X.columns if col != output]
 
-    # # Impute missing values using the mean strategy
-    # try:
-    #     imputer = SimpleImputer(strategy=fill_strategy)
-    #     X[features] = imputer.fit_transform(X[features])
-    # except:
-    #     print()
+    # Impute missing values using the mean strategy
+    try:
+        imputer = SimpleImputer(strategy=fill_strategy)
+        X[features] = imputer.fit_transform(X[features])
+    except:
+        print()
 
     X = torch.tensor(X.values, dtype=torch.float32)
     y = torch.tensor(y.values, dtype=torch.float32)

@@ -13,7 +13,7 @@
   num_rounds: 3
   min_evalclient: 2
   # path_to_master_csv : 'D:\ESI\3CS\PFE\last_year\Code\MEDfl\notebooks\sapsii_score_knnimputed_eicu.csv'
-  path_to_master_csv : 'D:\ESI\3CS\PFE\last_year\Code\MEDfl\notebooks\data\SVM\iris_dataset.csv'
+  path_to_master_csv : 'D:\ESI\3CS\PFE\last_year\Code\MEDfl\notebooks\eicu_test.csv'
 
   path_to_test_csv : 'D:\ESI\3CS\PFE\last_year\Code\MEDfl\notebooks\eicu_test.csv'
 
