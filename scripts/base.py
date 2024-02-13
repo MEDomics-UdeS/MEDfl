@@ -4,8 +4,10 @@ from configparser import ConfigParser
 
 # Load configuration from the config file
 config = ConfigParser()
-config.read('D:\\ESI\\3CS\\PFE\\last_year\\Code\\MEDfl\\scripts\\config.ini')
+config.read('/home/local/USHERBROOKE/saho6810/MEDfl/code/MEDfl/scripts/config.ini')
 mysql_config = config['mysql']
+
+
 
 connection_string = (
     f"mysql+mysqlconnector://{mysql_config['user']}:{mysql_config['password']}@"

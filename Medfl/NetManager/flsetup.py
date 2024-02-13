@@ -298,7 +298,7 @@ class FLsetup:
         """
         return pd.read_sql(
             text(
-                f"SELECT * FROM feddatasets WHERE FLsetupId = {get_flsetupid_from_name(self.name)}"
+                f"SELECT * FROM FedDatasets WHERE FLsetupId = {get_flsetupid_from_name(self.name)}"
             ),
             my_eng,
         )

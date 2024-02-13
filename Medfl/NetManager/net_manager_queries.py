@@ -65,8 +65,8 @@ CREATE TABLE IF NOT EXISTS Datasets (
                      DataSetName VARCHAR(255), 
                      NodeId INT,
                      {},
-                     PRIMARY KEY (DataSetId), 
-                     FOREIGN KEY (NodeId) REFERENCES Nodes(NodeId)
+                     PRIMARY KEY (DataSetId)
+                     
 );
 """
 
@@ -132,6 +132,6 @@ DELETE_FLPIPELINE_QUERY = "DELETE FROM FLpipeline WHERE name = '{name}'"
 SELECT_FLPIPELINE_QUERY = "SELECT FROM FLpipeline WHERE name = '{name}'"
 
 CREATE_TEST_RESULTS_QUERY = """
-INSERT INTO testresults (pipelineid, nodename, confusionmatrix, accuracy , sensivity, ppv , npv , f1score , fpr , tpr )
+INSERT INTO testResults (pipelineid, nodename, confusionmatrix, accuracy , sensivity, ppv , npv , f1score , fpr , tpr )
 VALUES ('{pipelineId}', '{nodeName}', '{confusion_matrix}', '{accuracy}' , '{sensivity}' , '{ppv}' , '{npv}' , '{f1score}' , '{fpr}' , '{tpr}')
 """
