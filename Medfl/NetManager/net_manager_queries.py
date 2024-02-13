@@ -9,7 +9,7 @@ DELETE_DATASET = """
 """
 
 SELECT_ALL_DATASET_NAMES = """
-    SELECT DISTINCT DataSetName FROM DataSets
+    SELECT DISTINCT DataSetName,NodeId FROM DataSets
 """
 
 SELECT_DATASET_BY_NAME = """
@@ -37,6 +37,10 @@ INSERT_NETWORK_QUERY = "INSERT INTO Networks(NetName) VALUES ('{name}')"
 # SQL query to delete a network
 DELETE_NETWORK_QUERY = "DELETE FROM Networks WHERE NetName = '{name}'"
 
+# SQL query to delete a network
+GET_NETWORK_QUERY = "SELECT * FROM Networks WHERE NetName = '{name}'"
+
+
 # SQL query to update a network
 UPDATE_NETWORK_QUERY = (
     "UPDATE Networks SET FLsetupId = {FLsetupId} WHERE NetId = {id}"
@@ -54,11 +58,23 @@ CREATE TABLE IF NOT EXISTS MasterDataset (
 );
 """
 
+# SQL query to create the datasets table
+CREATE_DATASETS_TABLE_QUERY = """
+CREATE TABLE IF NOT EXISTS Datasets (
+                     DataSetId INT NOT NULL AUTO_INCREMENT, 
+                     DataSetName VARCHAR(255), 
+                     NodeId INT,
+                     {},
+                     PRIMARY KEY (DataSetId)
+                     
+);
+"""
+
 # SQL query to insert dataset values
 INSERT_DATASET_VALUES_QUERY = "INSERT INTO MasterDataset({columns}, NodeId) VALUES ('{name}', {nodeId}, {values})"
 
 
-###### FL setup_queries
+# FL setup_queries
 # sql_queries.py
 
 CREATE_FLSETUP_QUERY = """
@@ -70,6 +86,11 @@ DELETE_FLSETUP_QUERY = """
     DELETE FROM FLsetup
     WHERE name = :name
 """
+
+UPDATE_FLSETUP_QUERY = UPDATE_NETWORK_QUERY = (
+    "UPDATE FLsetup SET column_name ='{column_name}' WHERE name ='{FLsetupName}'"
+)
+
 
 READ_SETUP_QUERY = """
     SELECT * FROM FLsetup
@@ -107,3 +128,10 @@ INSERT INTO FLpipeline (name, description, creation_date, results)
 VALUES ('{name}', '{description}', '{creation_date}', '{result}')
 """
 DELETE_FLPIPELINE_QUERY = "DELETE FROM FLpipeline WHERE name = '{name}'"
+
+SELECT_FLPIPELINE_QUERY = "SELECT FROM FLpipeline WHERE name = '{name}'"
+
+CREATE_TEST_RESULTS_QUERY = """
+INSERT INTO testResults (pipelineid, nodename, confusionmatrix, accuracy , sensivity, ppv , npv , f1score , fpr , tpr )
+VALUES ('{pipelineId}', '{nodeName}', '{confusion_matrix}', '{accuracy}' , '{sensivity}' , '{ppv}' , '{npv}' , '{f1score}' , '{fpr}' , '{tpr}')
+"""

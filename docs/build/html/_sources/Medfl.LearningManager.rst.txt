@@ -12,6 +12,14 @@ Medfl.LearningManager.client module
    :undoc-members:
    :show-inheritance:
 
+Medfl.LearningManager.dynamicModal module
+-----------------------------------------
+
+.. automodule:: Medfl.LearningManager.dynamicModal
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Medfl.LearningManager.federated\_dataset module
 -----------------------------------------------
 
@@ -71,7 +79,7 @@ Medfl.LearningManager.utils module
 Module contents
 ---------------
 
-.. automodule:: Medfl.LearningManager
+.. automodule:: Medfl.LearningManager  
    :members:
    :undoc-members:
    :show-inheritance:

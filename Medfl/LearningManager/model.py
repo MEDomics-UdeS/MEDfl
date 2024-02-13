@@ -21,26 +21,6 @@ class Model:
         model (torch.nn.Module): PyTorch neural network.
         optimizer (torch.optim.Optimizer): PyTorch optimizer.
         criterion (typing.Callable): Loss function.
-
-    Methods:
-        __init__(self, model: torch.nn.Module, optimizer: torch.optim.Optimizer, criterion: typing.Callable) -> None:
-            Initialize Model class with the specified model, optimizer, and criterion.
-
-        validate(self) -> None:
-            Validate the model and optimizer attributes.
-
-        get_parameters(self) -> List[np.ndarray]:
-            Get the parameters of the model as a list of NumPy arrays.
-
-        set_parameters(self, parameters: List[np.ndarray]) -> None:
-            Set the parameters of the model from a list of NumPy arrays.
-
-        train(self, train_loader, epoch, device, privacy_engine, diff_priv=False) -> float:
-            Train the model on the given train_loader for one epoch.
-
-        evaluate(self, val_loader, device=torch.device("cpu")) -> Tuple[float, float]:
-            Evaluate the model on the given validation data.
-
     """
 
     def __init__(
@@ -186,3 +166,38 @@ class Model:
 
         loss /= len(val_loader.dataset)
         return loss, np.mean(accuracy)
+
+    @staticmethod
+    def save_model(model , model_name:str):
+        """
+        Saves a PyTorch model to a file.
+
+        Args:
+            model (torch.nn.Module): PyTorch model to be saved.
+            model_name (str): Name of the model file.
+
+        Raises:
+            Exception: If there is an issue during the saving process.
+
+        Returns:
+            None
+        """
+        try:
+            torch.save(model, '../../notebooks/.ipynb_checkpoints/trainedModels/' + model_name + ".pth")
+        except Exception as e:
+            raise Exception(f"Error saving the model: {str(e)}")
+    
+    @staticmethod
+    def load_model(model_name:str):
+        """
+        Loads a PyTorch model from a file.
+
+        Args:
+            model_name (str): Name of the model file to be loaded.
+
+        Returns:
+            torch.nn.Module: Loaded PyTorch model.
+        """
+        loadedModel = torch.load('../../notebooks/.ipynb_checkpoints/trainedModels/'+model_name+".pth")
+        return loadedModel
+

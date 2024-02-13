@@ -33,7 +33,7 @@ class DataSet:
         if not isinstance(self.path, str):
             raise TypeError("path argument must be a string")
 
-    def upload_dataset(self, NodeId):
+    def upload_dataset(self, NodeId=-1):
         """
         Upload the dataset to the database.
 
@@ -44,17 +44,23 @@ class DataSet:
         - Assumes the file at self.path is a valid CSV file.
         - The dataset is uploaded to the 'DataSets' table in the database.
         """
+
         data_df = pd.read_csv(self.path)
+        nodeId = NodeId
         columns = data_df.columns.tolist()
+        
 
-        sql_query = INSERT_DATASET.format(
-            columns=", ".join(columns),
-            values=", ".join(f":{col}" for col in columns),
-        )
-
+        data_df = process_eicu(data_df)
         for index, row in data_df.iterrows():
-            values = {col: is_str(data_df, row, col) for col in columns}
-            self.engine.execute(sql_query, **values)
+            query_1 = "INSERT INTO DataSets(DataSetName,nodeId," + "".join(
+                f"{x}," for x in columns
+            )
+            query_2 = f" VALUES ('{self.name}',{nodeId}, " + "".join(
+                f"{is_str(data_df, row, x)}," for x in columns
+            )
+            query = query_1[:-1] + ")" + query_2[:-1] + ")"
+             
+            self.engine.execute(text(query))
 
     def delete_dataset(self):
         """

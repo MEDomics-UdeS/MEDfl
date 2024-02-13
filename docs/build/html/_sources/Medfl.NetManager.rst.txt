@@ -4,14 +4,6 @@ Medfl.NetManager package
 Submodules
 ----------
 
-Medfl.NetManager.base module
-----------------------------
-
-.. automodule:: Medfl.NetManager.base
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Medfl.NetManager.dataset module
 -------------------------------
 
@@ -63,7 +55,7 @@ Medfl.NetManager.node module
 Module contents
 ---------------
 
-.. automodule:: Medfl.NetManager
+.. automodule:: Medfl.NetManager  
    :members:
    :undoc-members:
    :show-inheritance:

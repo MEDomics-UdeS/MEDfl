@@ -26,24 +26,7 @@ class FlowerServer:
         accuracies (List[float]): A list to store the accuracy of the global model during each round.
         losses (List[float]): A list to store the loss of the global model during each round.
         flower_clients (List[FlowerClient]): A list to store the FlowerClient objects representing individual clients.
-
-    Methods:
-        __init__(self, global_model: Model, strategy: Strategy, num_rounds: int, num_clients: int,
-                 fed_dataset: FederatedDataset, diff_privacy: bool = False) -> None:
-            Initialize a FlowerServer object with the specified parameters.
-
-        validate(self) -> None:
-            Validate the attributes of the FlowerServer object.
-
-        client_fn(self, cid) -> FlowerClient:
-            Return a FlowerClient object for a specific client ID.
-
-        evaluate(self, server_round: int, parameters: fl.common.NDArrays,
-                 config: Dict[str, fl.common.Scalar]) -> Optional[Tuple[float, Dict[str, fl.common.Scalar]]]:
-            Evaluate the global model on the validation dataset and update the accuracies and losses.
-
-        run(self) -> None:
-            Run the federated learning process using Flower simulation.
+     
     """
 
     def __init__(
@@ -54,6 +37,7 @@ class FlowerServer:
         num_clients: int,
         fed_dataset: FederatedDataset,
         diff_privacy: bool = False,
+        client_resources: Optional[Dict[str, float]] = {'num_cpus': 1, 'num_gpus': 0.0}
     ) -> None:
         """
         Initialize a FlowerServer object with the specified parameters.
@@ -67,9 +51,10 @@ class FlowerServer:
             diff_privacy (bool, optional): Whether differential privacy is used during the federated learning process.
                                            Default is False.
         """
-        self.device = torch.device(
-            f"cuda" if torch.cuda.is_available() else "cpu"
-        )
+        # self.device = torch.device(
+        #     f"cuda" if torch.cuda.is_available() else "cpu"
+        # )
+        self.device= "cpu"
         self.global_model = global_model
         self.params = global_model.get_parameters()
         self.global_model.model = global_model.model.to(self.device)
@@ -77,6 +62,7 @@ class FlowerServer:
         self.num_clients = num_clients
         self.fed_dataset = fed_dataset
         self.strategy = strategy
+        self.client_resources = client_resources
         setattr(
             self.strategy.strategy_object,
             "min_available_clients",
@@ -165,14 +151,23 @@ class FlowerServer:
     def run(self) -> None:
         """
         Run the federated learning process using Flower simulation.
+
+        Returns:
+            History: The history of the accuracies and losses during the training of each node 
         """
-        fl.simulation.start_simulation(
+         # Increase the object store memory to the minimum allowed value or higher
+        ray_init_args = {"include_dashboard": False
+                         , "object_store_memory": 78643200
+                        }
+
+        history = fl.simulation.start_simulation(
             client_fn=self.client_fn,
             num_clients=self.num_clients,
             config=fl.server.ServerConfig(self.num_rounds),
             strategy=self.strategy.strategy_object,
-            ray_init_args={"include_dashboard": False},
+            ray_init_args=ray_init_args,
+            client_resources = self.client_resources
         )
 
+        return history
 
-# Rest of the code...
