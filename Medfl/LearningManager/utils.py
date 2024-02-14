@@ -16,6 +16,10 @@ yaml_path = pkg_resources.resource_filename(__name__, "params.yaml")
 with open(yaml_path) as g:
     params = yaml.load(g, Loader=SafeLoader)
 
+global_yaml_path = pkg_resources.resource_filename(__name__, "../../global_params.yaml")
+with open(global_yaml_path) as g:
+    global_params = yaml.load(g, Loader=SafeLoader)
+
 
 def custom_classification_report(y_true, y_pred):
     """
