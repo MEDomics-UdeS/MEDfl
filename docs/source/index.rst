@@ -16,7 +16,7 @@ This Python package is an open-source tool designed for simulating federated lea
    Installation
    Documentation
    configuration_file
-   csv_file
+   
 
 .. toctree::
    :maxdepth: 1
