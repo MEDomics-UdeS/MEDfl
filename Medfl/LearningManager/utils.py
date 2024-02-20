@@ -16,6 +16,10 @@ yaml_path = pkg_resources.resource_filename(__name__, "params.yaml")
 with open(yaml_path) as g:
     params = yaml.load(g, Loader=SafeLoader)
 
+global_yaml_path = pkg_resources.resource_filename(__name__, "../../global_params.yaml")
+with open(global_yaml_path) as g:
+    global_params = yaml.load(g, Loader=SafeLoader)
+
 
 def custom_classification_report(y_true, y_pred):
     """
@@ -121,9 +125,9 @@ def empty_db():
     my_eng.execute(text(f"ALTER TABLE {'FedDatasets'} AUTO_INCREMENT = 1"))
     my_eng.execute(text(f"ALTER TABLE {'FLsetup'} AUTO_INCREMENT = 1"))
     my_eng.execute(text(f"ALTER TABLE {'FLpipeline'} AUTO_INCREMENT = 1"))
-    my_eng.execute(text(f"DELETE FROM {'testresults'}"))
-    my_eng.execute(text(f"DROP TABLE IF EXISTS {'masterdataset'}"))
-    my_eng.execute(text(f"DROP TABLE IF EXISTS {'datasets'}"))
+    my_eng.execute(text(f"DELETE FROM {'testResults'}"))
+    my_eng.execute(text(f"DROP TABLE IF EXISTS {'MasterDataset'}"))
+    my_eng.execute(text(f"DROP TABLE IF EXISTS {'DataSets'}"))
 
 def get_pipeline_from_name(name):
     """
@@ -138,7 +142,7 @@ def get_pipeline_from_name(name):
 
     NodeId = int(
         pd.read_sql(
-            text(f"SELECT id FROM flpipeline WHERE name = '{name}'"), my_eng
+            text(f"SELECT id FROM FLpipeline WHERE name = '{name}'"), my_eng
         ).iloc[0, 0]
     )
     return NodeId
@@ -155,7 +159,7 @@ def get_pipeline_confusion_matrix(pipeline_id):
     """
 
     data = pd.read_sql(
-            text(f"SELECT confusionmatrix FROM testresults WHERE pipelineid = '{pipeline_id}'"), my_eng
+            text(f"SELECT confusionmatrix FROM testResults WHERE pipelineid = '{pipeline_id}'"), my_eng
         )
     
     # Convert the column of strings into a list of dictionaries representing confusion matrices
@@ -196,7 +200,7 @@ def get_node_confusion_matrix(pipeline_id , node_name):
     """
 
     data = pd.read_sql(
-            text(f"SELECT confusionmatrix FROM testresults WHERE pipelineid = '{pipeline_id}' AND nodename = '{node_name}'"), my_eng
+            text(f"SELECT confusionmatrix FROM testResults WHERE pipelineid = '{pipeline_id}' AND nodename = '{node_name}'"), my_eng
         )
     
     # Convert the column of strings into a list of dictionaries representing confusion matrices
@@ -219,6 +223,6 @@ def get_pipeline_result(pipeline_id):
         pandas.DataFrame: DataFrame containing test results for the specified pipeline.
     """
     data = pd.read_sql(
-            text(f"SELECT * FROM testresults WHERE pipelineid = '{pipeline_id}'"), my_eng
+            text(f"SELECT * FROM testResults WHERE pipelineid = '{pipeline_id}'"), my_eng
         )
     return data

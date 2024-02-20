@@ -38,10 +38,13 @@ cd MEDfl
 pip install -e .
 ```
 ### MySQL DB configuration
-MEDfl requires a MySQL DB connection, and this is in order to allow users to work with their own tabular datasets,  we have created a bash script to install and configure A MySQL DB with phpmyadmin monitoring system, run the following command then change your credential on the MEDfl/scripts/base.py file
+MEDfl requires a MySQL DB connection, and this is in order to allow users to work with their own tabular datasets,  we have created a bash script to install and configure A MySQL DB with phpmyadmin monitoring system, run the following command then change your credential on the MEDfl/scripts/base.py and MEDfl/scripts/config.ini files
 ```
 sudo bash MEDfl/scripts/setup_mysql.sh
 ```
+
+### Project Base URL Update
+Please ensure to modify the `base_url` parameter in the `MEDfl/global_params.yaml` file. The `base_url` represents the path to the MEDfl project on your local machine. Update this value accordingly.
 
 ## 3. Documentation
 We used sphinx to create the documentation for this project.  you can generate and host it locally by compiling the documentation source code using:

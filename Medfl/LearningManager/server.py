@@ -51,9 +51,10 @@ class FlowerServer:
             diff_privacy (bool, optional): Whether differential privacy is used during the federated learning process.
                                            Default is False.
         """
-        self.device = torch.device(
-            f"cuda" if torch.cuda.is_available() else "cpu"
-        )
+        # self.device = torch.device(
+        #     f"cuda" if torch.cuda.is_available() else "cpu"
+        # )
+        self.device= "cpu"
         self.global_model = global_model
         self.params = global_model.get_parameters()
         self.global_model.model = global_model.model.to(self.device)

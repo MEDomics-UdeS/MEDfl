@@ -19,4 +19,4 @@ sudo systemctl reload apache2
 
 # Print completion message
 echo "MySQL and phpMyAdmin setup complete."
-' > setup_mysql.sh && chmod +x setup_mysql.sh && python3 create_db.py
+' > setup_mysql.sh && chmod +x setup_mysql.sh && python3 scripts/create_db.py

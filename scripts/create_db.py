@@ -12,7 +12,7 @@ try:
 
     # Select the 'MEDfl' database
     mycursor.execute("USE MEDfl")
-    
+
     # Get the list of all tables in the database
     mycursor.execute("SHOW TABLES")
     tables = mycursor.fetchall()
@@ -20,7 +20,7 @@ try:
     # Drop each table one by one
     for table in tables:
         table_name = table[0]
-        mycursor.execute(f"DROP TABLE {table_name}")
+        mycursor.execute(f"DROP TABLE IF EXISTS {table_name}")
 
     # Create Networks table
     mycursor.execute(
@@ -41,7 +41,6 @@ try:
     column_name varchar(255) DEFAULT NULL,\
     PRIMARY KEY (`FLsetupId`) \
     )")
-
 
     # Create Nodes table
     mycursor.execute("CREATE TABLE Nodes ( \
@@ -64,10 +63,9 @@ try:
         f"CREATE TABLE DataSets( \
                      DataSetId INT NOT NULL AUTO_INCREMENT, \
                      DataSetName VARCHAR(255), \
-                     NodeId INT,\
+                     NodeId INT CHECK (NodeId = -1 OR NodeId IS NOT NULL),\
                      {sub_query}\
-                     PRIMARY KEY (DataSetId), \
-                     FOREIGN KEY (NodeId) REFERENCES Nodes(NodeId)\
+                     PRIMARY KEY (DataSetId)\
                      )"
     )
 
