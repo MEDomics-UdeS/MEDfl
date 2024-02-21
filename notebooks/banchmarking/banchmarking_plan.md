@@ -30,6 +30,20 @@ Evaluate the scalability and performance of **MEDfl** package under different ne
 * Measure the performance metrics as the number of clients increases to test scalability.
 * test different configurations ``(e.g., define test nodes and train nodes VS each node is responsible for training and testing )``
 
+
+#### Evaluation metrics 
+1. **Communication Cost:**
+        The communication cost becomes a critical factor when scaling the number of clients in the network. The efficiency of communication between various clients and the server significantly influences the overall performance of the pipeline.
+
+2. **Training Time:**
+        Assess the training time required for the federated learning process. Understanding how the training time scales with the increasing number of clients is essential for optimizing efficiency.
+
+3. **Global Model Performance:**
+        Evaluate the overall performance of the global model across all clients. It is crucial to ensure that adjustments in the number of clients do not adversely impact the accuracy and effectiveness of the global model.
+
+4. **Resource Utilization Metrics:**
+        Monitor metrics related to resource utilization, both at the individual client level and on the central server. Assessing CPU, memory, and other resource usage is vital to guarantee that scaling the number of clients does not lead to excessive resource consumption.
+
 ### 2.2. Aggregation Algorithms:
 
 #### **Objective:** 
@@ -38,6 +52,14 @@ Assess the impact of different aggregation algorithms on the federated learning 
 #### Plan:
 * Test various aggregation algorithms ``(e.g., FedAvg, FedMedian,FedOpt)`` within **MEDfl**.
 * Benchmark the package using the same model type but different aggregation algorithms.
+
+#### Evaluation metrics
+
+1. **Training Time: (Convergence speed)**
+        Evaluate how quickly the federated learning process converges to a satisfactory model. Different aggregation algorithms may influence convergence speed, and it's essential to identify methods that promote faster convergence.
+
+2. **Global Model Performance**
+        
 
 ### 2.3. Degree of Confidential Privacy:
 
