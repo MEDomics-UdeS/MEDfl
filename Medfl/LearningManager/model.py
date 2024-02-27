@@ -188,7 +188,7 @@ class Model:
             raise Exception(f"Error saving the model: {str(e)}")
     
     @staticmethod
-    def load_model(model_name:str):
+    def load_model(model_path:str):
         """
         Loads a PyTorch model from a file.
 
@@ -198,6 +198,6 @@ class Model:
         Returns:
             torch.nn.Module: Loaded PyTorch model.
         """
-        loadedModel = torch.load('../../notebooks/.ipynb_checkpoints/trainedModels/'+model_name+".pth")
+        loadedModel = torch.load(model_path)
         return loadedModel
 
