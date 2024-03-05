@@ -1,16 +1,29 @@
-import seaborn as sns
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import torch.nn.functional as F
 from torch.utils.data import TensorDataset, DataLoader
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.base import BaseEstimator
-from sklearn.metrics import make_scorer, precision_score, recall_score, accuracy_score,f1_score
-from sklearn.model_selection import train_test_split
+from sklearn.metrics import make_scorer, precision_score, recall_score, accuracy_score, f1_score,roc_auc_score
+import optuna
 
+
+class BinaryClassifier(nn.Module):
+    def __init__(self, input_size, hidden_size):
+        super(BinaryClassifier, self).__init__()
+        self.fc1 = nn.Linear(input_size, hidden_size)
+        self.fc2 = nn.Linear(hidden_size, 1)
+
+    def forward(self, x):
+        x = F.relu(self.fc1(x))
+        x = self.fc2(x)
+        return x
+    
 class CustomPyTorchClassifier(BaseEstimator):
     def __init__(self, hidden_dim=10, lr=0.001, pos_weight=1, th=0.5, max_epochs=10, batch_size=32):
         self.hidden_dim = hidden_dim
@@ -67,14 +80,20 @@ class CustomPyTorchClassifier(BaseEstimator):
 
 
 class ParamsOptimiser:
-    def __init__(self, X_train, y_train):
+    def __init__(self, X_train, y_train, X_test, y_test):
         if isinstance(X_train, pd.DataFrame):
             X_train = X_train.to_numpy()
         if isinstance(y_train, pd.Series):
             y_train = y_train.to_numpy()
+        if isinstance(X_test, pd.DataFrame):
+            X_test = X_test.to_numpy()
+        if isinstance(y_test, pd.Series):
+            y_test = y_test.to_numpy()
 
         self.X_train = X_train
         self.y_train = y_train
+        self.X_test = X_test
+        self.y_test = y_test
 
     def perform_grid_search(self, param_grid, scoring_metric='recall', cv=3, verbose=1):
         pytorch_model = CustomPyTorchClassifier()
@@ -142,6 +161,186 @@ class ParamsOptimiser:
                 print("Invalid number of parameters to plot. You can provide either one or two parameters.")
         except KeyError as e:
             print(f"Error: {e}. Make sure the specified scoring metric exists in the results DataFrame.")
+
+    
+
+    def optuna_optimisation(self, direction, params):
+        # Create the data loaders here
+        train_data = TensorDataset(torch.from_numpy(self.X_train).float(), torch.from_numpy(self.y_train).float())
+        test_data = TensorDataset(torch.from_numpy(self.X_test).float(), torch.from_numpy(self.y_test).float())
+
+        train_loader = DataLoader(train_data, batch_size=params['batch_size'], shuffle=True)
+        test_loader = DataLoader(test_data, batch_size=params['batch_size'], shuffle=False)
+
+        def objective(trial):
+            # Create the model with the suggested hyperparameters
+            model = BinaryClassifier(input_size=self.X_train.shape[1], hidden_size=trial.suggest_int('hidden_size', **params['hidden_size']))
+
+            # Define the loss function and optimizer
+            criterion = nn.BCEWithLogitsLoss()
+            optimizer_name = trial.suggest_categorical('optimizer', params['optimizer'])
+            learning_rate = trial.suggest_float('learning_rate', **params['learning_rate'])
+
+            if optimizer_name == 'Adam':
+                optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+            elif optimizer_name == 'SGD':
+                optimizer = optim.SGD(model.parameters(), lr=learning_rate)
+            elif optimizer_name == 'RMSprop':
+                optimizer = optim.RMSprop(model.parameters(), lr=learning_rate)
+
+            # Training loop
+            num_epochs = trial.suggest_int('num_epochs', **params['num_epochs'])
+            for epoch in range(num_epochs):
+                model.train()
+                for batch_X, batch_y in train_loader:
+                    optimizer.zero_grad()
+                    outputs = model(batch_X)
+                    loss = criterion(outputs.squeeze(), batch_y)
+                    loss.backward()
+                    optimizer.step()
+
+                # Evaluation
+                model.eval()
+                predictions = []
+                true_labels = []
+                with torch.no_grad():
+                    for batch_X, batch_y in test_loader:
+                        outputs = model(batch_X)
+                        predictions.extend(torch.sigmoid(outputs).numpy())
+                        true_labels.extend(batch_y.numpy())
+
+                # Calculate F1 score
+                # f1 = f1_score(true_labels, (np.array(predictions) > 0.5).astype(int))
+                auc = roc_auc_score(true_labels, predictions)
+
+                trial.report(auc, epoch)
+
+                # Handle pruning based on the intermediate value
+                if trial.should_prune():
+                    raise optuna.TrialPruned()
+
+            return auc
+
+        # Create an Optuna study
+        study = optuna.create_study(direction=direction)
+        study.optimize(objective, n_trials=params['n_trials'])
+        
+        self.study = study
+
+        # Get the best hyperparameters
+        best_params = study.best_params
+        print(f"Best Hyperparameters: {best_params}")
+
+        return study
+    
+    def train_optimized_model(self ,trial ,th_min , th_max):
+        threashhold = trial.suggest_float('threashhold', th_min, th_max, log=True)
+
+        train_data = TensorDataset(torch.from_numpy(self.X_train).float(), torch.from_numpy(self.y_train).float())
+        test_data = TensorDataset(torch.from_numpy(self.X_test).float(), torch.from_numpy(self.y_test).float())
+
+        train_loader = DataLoader(train_data, batch_size=32, shuffle=True)
+        test_loader = DataLoader(test_data, batch_size=32, shuffle=False)
+
+        best_params = self.study.best_params
+        # Use the best hyperparameters to train the final model
+        final_model = BinaryClassifier(input_size=self.X_train.shape[1], hidden_size=best_params['hidden_size'])
+        final_optimizer = self.get_optimizer(best_params['optimizer'], final_model.parameters(), best_params['learning_rate'])
+        final_criterion = nn.BCEWithLogitsLoss()
+
+        num_epochs = best_params['num_epochs']
+        for epoch in range(num_epochs):
+            final_model.train()
+            for batch_X, batch_y in train_loader:
+                final_optimizer.zero_grad()
+                outputs = final_model(batch_X)
+                loss = final_criterion(outputs.squeeze(), batch_y)
+                loss.backward()
+                final_optimizer.step()
+
+        # Evaluate the final model on the test set
+        final_model.eval()
+        with torch.no_grad():
+            predictions = []
+            true_labels = []
+            for batch_X, batch_y in test_loader:
+                outputs = final_model(batch_X)
+                predictions.extend(torch.sigmoid(outputs).numpy())
+                true_labels.extend(batch_y.numpy())
+
+        final_f1 = f1_score(true_labels, (np.array(predictions) > threashhold).astype(int))
+        print(f"Final Model F1 Score: {final_f1}")
+
+        return final_f1
+
+    def get_optimizer(self, optimizer_name, parameters, learning_rate):
+        if optimizer_name == 'Adam':
+            return optim.Adam(parameters, lr=learning_rate)
+        elif optimizer_name == 'SGD':
+            return optim.SGD(parameters, lr=learning_rate)
+        elif optimizer_name == 'RMSprop':
+            return optim.RMSprop(parameters, lr=learning_rate)
+        else:
+            raise ValueError(f"Unknown optimizer: {optimizer_name}")
+
+    def perform_grid_search(self, param_grid, scoring_metric='recall', cv=3, verbose=1):
+        pytorch_model = CustomPyTorchClassifier()
+        scorer = make_scorer(recall_score, greater_is_better=True)
+
+        if scoring_metric == 'precision':
+            scorer = make_scorer(precision_score)
+        elif scoring_metric == 'accuracy':
+            scorer = make_scorer(accuracy_score)
+        elif scoring_metric == 'recall':
+            scorer = make_scorer(recall_score)
+        elif scoring_metric == 'f1':
+            scorer = make_scorer(f1_score)
+
+        grid_search = GridSearchCV(pytorch_model, param_grid, scoring=scorer, cv=cv, refit=scoring_metric, verbose=verbose)
+        grid_search.fit(self.X_train, self.y_train)
+
+        self.grid_search_results = grid_search  # Save the grid search results
+
+        return grid_search
+    
+    
+    def plot_param_importances(self):
+        return optuna.visualisation.plot_importances(self.study)
+    
+    def plot_slice(self , params):
+        return optuna.visualization.plot_slice(self.study , params=params)
+    
+    def plot_parallel_coordinate(self):
+        return optuna.visualization.plot_parallel_coordinate(self.study)
+    
+    def plot_rank(self , params=None):
+        return optuna.visualization.plot_rank(self.study , params=params)
+    
+    def plot_optimization_history(self):
+        return optuna.visualization.plot_optimization_history(self.study)
+    
+    def optimize_model_threashhold(self , n_trials , th_min , th_max):
+        additional_params = {'th_min': th_min, 'th_max': th_max}
+
+        th_study = optuna.create_study(direction='maximize')
+        th_study.optimize(lambda trial: self.train_optimized_model(trial , **additional_params) , n_trials)
+
+        # Get the best hyperparameters
+        best_params = th_study.best_params
+        print(f"Best Hyperparameters: {best_params}")
+
+        return optuna.visualization.plot_rank(th_study , params=['threashhold'])
+        
+
+
+
+
+
+
+
+
+        
+    
 
 
 
