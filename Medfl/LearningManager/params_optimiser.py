@@ -14,14 +14,26 @@ import optuna
 
 
 class BinaryClassifier(nn.Module):
-    def __init__(self, input_size, hidden_size):
+    def __init__(self, input_size, num_layers, layer_size):
         super(BinaryClassifier, self).__init__()
-        self.fc1 = nn.Linear(input_size, hidden_size)
-        self.fc2 = nn.Linear(hidden_size, 1)
+
+        # Input layer
+        self.layers = [nn.Linear(input_size, layer_size)]
+        
+        # Hidden layers
+        for _ in range(num_layers - 1):
+            self.layers.append(nn.Linear(layer_size, layer_size))
+        
+        # Output layer
+        self.layers.append(nn.Linear(layer_size, 1))
+        
+        # ModuleList to handle dynamic number of layers
+        self.layers = nn.ModuleList(self.layers)
 
     def forward(self, x):
-        x = F.relu(self.fc1(x))
-        x = self.fc2(x)
+        for layer in self.layers[:-1]:
+            x = F.relu(layer(x))
+        x = self.layers[-1](x)
         return x
     
 class CustomPyTorchClassifier(BaseEstimator):
@@ -169,17 +181,25 @@ class ParamsOptimiser:
         train_data = TensorDataset(torch.from_numpy(self.X_train).float(), torch.from_numpy(self.y_train).float())
         test_data = TensorDataset(torch.from_numpy(self.X_test).float(), torch.from_numpy(self.y_test).float())
 
-        train_loader = DataLoader(train_data, batch_size=params['batch_size'], shuffle=True)
-        test_loader = DataLoader(test_data, batch_size=params['batch_size'], shuffle=False)
+       
 
         def objective(trial):
+
+            batch_size=trial.suggest_int('batch_size', **params['batch_size'])
+
+            train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
+            test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=False)
+
             # Create the model with the suggested hyperparameters
-            model = BinaryClassifier(input_size=self.X_train.shape[1], hidden_size=trial.suggest_int('hidden_size', **params['hidden_size']))
+            model = BinaryClassifier(input_size=self.X_train.shape[1],
+                                     num_layers=trial.suggest_int('num_layers', **params['num_layers']) ,
+                                     layer_size=trial.suggest_int('hidden_size', **params['hidden_size']))
 
             # Define the loss function and optimizer
             criterion = nn.BCEWithLogitsLoss()
             optimizer_name = trial.suggest_categorical('optimizer', params['optimizer'])
             learning_rate = trial.suggest_float('learning_rate', **params['learning_rate'])
+            
 
             if optimizer_name == 'Adam':
                 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
@@ -234,17 +254,20 @@ class ParamsOptimiser:
         return study
     
     def train_optimized_model(self ,trial ,th_min , th_max):
+        
+        best_params = self.study.best_params
+
         threashhold = trial.suggest_float('threashhold', th_min, th_max, log=True)
 
         train_data = TensorDataset(torch.from_numpy(self.X_train).float(), torch.from_numpy(self.y_train).float())
         test_data = TensorDataset(torch.from_numpy(self.X_test).float(), torch.from_numpy(self.y_test).float())
 
-        train_loader = DataLoader(train_data, batch_size=32, shuffle=True)
-        test_loader = DataLoader(test_data, batch_size=32, shuffle=False)
+        train_loader = DataLoader(train_data, batch_size=best_params['batch_size'], shuffle=True)
+        test_loader = DataLoader(test_data, batch_size=best_params['batch_size'], shuffle=False)
 
-        best_params = self.study.best_params
+        
         # Use the best hyperparameters to train the final model
-        final_model = BinaryClassifier(input_size=self.X_train.shape[1], hidden_size=best_params['hidden_size'])
+        final_model = BinaryClassifier(input_size=self.X_train.shape[1], layer_size=best_params['hidden_size'] , num_layers=best_params['num_layers'])
         final_optimizer = self.get_optimizer(best_params['optimizer'], final_model.parameters(), best_params['learning_rate'])
         final_criterion = nn.BCEWithLogitsLoss()
 
@@ -305,7 +328,7 @@ class ParamsOptimiser:
     
     
     def plot_param_importances(self):
-        return optuna.visualisation.plot_importances(self.study)
+        return optuna.visualization.plot_param_importances(self.study)
     
     def plot_slice(self , params):
         return optuna.visualization.plot_slice(self.study , params=params)
