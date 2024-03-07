@@ -9,7 +9,7 @@ import torch.nn.functional as F
 from torch.utils.data import TensorDataset, DataLoader
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.base import BaseEstimator
-from sklearn.metrics import make_scorer, precision_score, recall_score, accuracy_score, f1_score,roc_auc_score
+from sklearn.metrics import make_scorer, precision_score, recall_score, accuracy_score, f1_score,roc_auc_score, balanced_accuracy_score
 import optuna
 
 
@@ -257,7 +257,7 @@ class ParamsOptimiser:
         
         best_params = self.study.best_params
 
-        threashhold = trial.suggest_float('threashhold', th_min, th_max, log=True)
+        threshold = trial.suggest_float('threashhold', th_min, th_max, log=True)
 
         train_data = TensorDataset(torch.from_numpy(self.X_train).float(), torch.from_numpy(self.y_train).float())
         test_data = TensorDataset(torch.from_numpy(self.X_test).float(), torch.from_numpy(self.y_test).float())
@@ -291,10 +291,10 @@ class ParamsOptimiser:
                 predictions.extend(torch.sigmoid(outputs).numpy())
                 true_labels.extend(batch_y.numpy())
 
-        final_f1 = f1_score(true_labels, (np.array(predictions) > threashhold).astype(int))
-        print(f"Final Model F1 Score: {final_f1}")
+        final_balanced_acc = balanced_accuracy_score(true_labels, (np.array(predictions) > threshold).astype(int))
+        print(f"Model balanced accuracy: {final_balanced_acc}")
 
-        return final_f1
+        return final_balanced_acc
 
     def get_optimizer(self, optimizer_name, parameters, learning_rate):
         if optimizer_name == 'Adam':
