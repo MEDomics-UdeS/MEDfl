@@ -163,7 +163,8 @@ class Model:
                 correct += np.sum(
                     y_hat.round().detach().numpy() == y_test.detach().numpy()
                 )
-
+        print('\n __________________________________ \n')
+        print(len(val_loader.dataset))
         loss /= len(val_loader.dataset)
         return loss, np.mean(accuracy)
 

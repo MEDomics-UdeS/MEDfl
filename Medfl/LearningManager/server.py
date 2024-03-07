@@ -112,6 +112,7 @@ class FlowerServer:
             f"cuda:{int(cid) % 4}" if torch.cuda.is_available() else "cpu"
         )
         client_model = copy.deepcopy(self.global_model)
+        
         trainloader = self.fed_dataset.trainloaders[int(cid)]
         valloader = self.fed_dataset.valloaders[int(cid)]
         # this helps in making plots
@@ -139,9 +140,11 @@ class FlowerServer:
             Optional[Tuple[float, Dict[str, fl.common.Scalar]]]: The evaluation loss and accuracy.
         """
         testloader = self.fed_dataset.valloaders[0]
+        
         self.global_model.set_parameters(
             parameters
         )  # Update model with the latest parameters
+        
         loss, accuracy = self.global_model.evaluate(testloader, self.device)
         self.losses.append(loss)
         self.accuracies.append(accuracy)

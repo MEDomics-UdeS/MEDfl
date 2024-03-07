@@ -71,6 +71,11 @@ Investigate the impact of confidential privacy mechanisms on the federated learn
 * Evaluate the trade-off between privacy and performance by measuring metrics.
 * Activate the differential privacy and bacnhmark the privacy parameters ``( MAX_GRAD_NORM , EPSILON and DELTA)``
 
+#### Evaluation metrics
+
+1. **utility-privacy trade-off:**
+       Analyze the trade-off between privacy protection and model utility. This metric helps understand how adjusting privacy settings affects the overall performance of the federated learning system.
+
 ### 2.4.  Transfer Learning:
 
 #### Objective: 
@@ -78,6 +83,14 @@ Evaluate the performance of the MEDfl package under the activation of transfer l
 
 #### Plan:
 * Benchmark the package in two scenarios: initializing a model from scratch and utilizing a pretrained model. Compare and analyze the performance differences between the two approaches.
+
+#### Evaluation metrics
+
+1. **Training time**
+       Measure the training time required for models with and without transfer learning. Evaluate whether transfer learning accelerates the convergence of the federated learning process.
+      
+2. **Global model performance**: 
+      Evaluate how the activation of transfer learning affects the accuracy of the global model.
 
 ## 3. DataSets
 in this banckmarking we will the eiCU dataset, This dataset consists of various tabular data containing diverse information about patients. Each table includes columns identifying hospitals, and the target variable is a binary column indicating the survival or death of the patient.
