@@ -5,6 +5,7 @@ from typing import Dict, List, Optional, Tuple
 import flwr as fl
 import numpy as np
 
+import optuna
 
 
 
@@ -64,6 +65,24 @@ class Strategy:
                   min_fit_clients= {self.min_fit_clients},\
                   min_evaluate_clients= {self.min_evaluate_clients},\
                   min_available_clients={self.min_available_clients},\
+                  on_fit_config_fn : {self.fit_config},\
                   initial_parameters=fl.common.ndarrays_to_parameters(self.initial_parameters),\
                   evaluate_fn={self.evaluate_fn})"
         )
+    
+    def optuna_fed_optimization(self, direction:str , hpo_rate:int , params_config):
+        self.study = optuna.create_study(direction=direction)
+        self.hpo_rate = hpo_rate
+        self.params_config = params_config
+        
+    def fit_config(self, server_round:int)->Dict [ str , fl . common . Scalar ]:
+        if(server_round - 1)%(self.hpo_rate) == 0:
+            trial = self.stydy.ask()
+            config = {
+                'learning_rate' :trial.suggest_float('learning_rate', **self.params_config['learning_rate']), 
+                'optimiser' : trial.suggest_categorical('optimizer', self.params_config['optimizer']),
+                'fl_strategy' : trial.suggest_categorical('fl_strategy', self.params_config['fl_strategy']), 
+                'reset': self.resetParams, 
+                'epochs': 10
+            }
+        return config
