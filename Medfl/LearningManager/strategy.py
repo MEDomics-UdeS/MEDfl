@@ -56,33 +56,74 @@ class Strategy:
         self.min_evaluate_clients = min_evaluate_clients
         self.min_available_clients = min_available_clients
         self.initial_parameters = initial_parameters
-        self.evaluate_fn = None
+        # self.evaluate_fn = None
         self.name = name
-        self.strategy_object = eval(
-            f"fl.server.strategy.{self.name}(\
-                   fraction_fit={self.fraction_fit},\
-                  fraction_evaluate= {self.fraction_evaluate},\
-                  min_fit_clients= {self.min_fit_clients},\
-                  min_evaluate_clients= {self.min_evaluate_clients},\
-                  min_available_clients={self.min_available_clients},\
-                  on_fit_config_fn : {self.fit_config},\
-                  initial_parameters=fl.common.ndarrays_to_parameters(self.initial_parameters),\
-                  evaluate_fn={self.evaluate_fn})"
-        )
     
     def optuna_fed_optimization(self, direction:str , hpo_rate:int , params_config):
         self.study = optuna.create_study(direction=direction)
         self.hpo_rate = hpo_rate
         self.params_config = params_config
+
+    def evaluate_fn(state, round_results):
+        print('\n *********************************  round results ')
+        print(round_results)
+        print('***********************')
         
+        # Return a dictionary containing the evaluation metrics
+        return {}
+    
     def fit_config(self, server_round:int)->Dict [ str , fl . common . Scalar ]:
         if(server_round - 1)%(self.hpo_rate) == 0:
-            trial = self.stydy.ask()
+            trial = self.study.ask()
             config = {
                 'learning_rate' :trial.suggest_float('learning_rate', **self.params_config['learning_rate']), 
                 'optimiser' : trial.suggest_categorical('optimizer', self.params_config['optimizer']),
                 'fl_strategy' : trial.suggest_categorical('fl_strategy', self.params_config['fl_strategy']), 
-                'reset': self.resetParams, 
-                'epochs': 10
+                # 'reset': self.resetParams, 
+                'epochs': trial.suggest_int('epochs', **self.params_config['epochs'])
             }
-        return config
+        
+            print("\n ======================== \n the fit config is used \n")
+            print(server_round)
+            print(config)
+            print("\n ======================== \n ")
+            if(server_round == 10):
+                print("\n *-*-*-*-*-*-*-*---*-*-*--*-*-*-*-* \n ")
+                print(self.study.best_params)
+                optuna.visualization.plot_parallel_coordinate(self.study)
+                print("\n *--*-*-*-*--*-*-*---*-**-**--*--*-*-*-*-*-*-*-**---*-* \n ")
+            return config
+        
+        return {}
+ 
+    def create_strategy(self):
+        self.strategy_object = self.get_strategy_by_name()(
+            fraction_fit=self.fraction_fit,
+            fraction_evaluate=self.fraction_evaluate,
+            min_fit_clients=self.min_fit_clients,
+            min_evaluate_clients=self.min_evaluate_clients,
+            min_available_clients=self.min_available_clients,
+            on_fit_config_fn=self.fit_config,
+            initial_parameters=fl.common.ndarrays_to_parameters(self.initial_parameters),
+            evaluate_fn=self.evaluate_fn
+        )
+    def get_strategy_by_name(self):
+        return eval(f"fl.server.strategy.{self.name}")
+    
+    def plot_param_importances(self):
+        return optuna.visualization.plot_param_importances(self.study)
+    
+    def plot_slice(self , params):
+        return optuna.visualization.plot_slice(self.study , params=params)
+    
+    def plot_parallel_coordinate(self):
+        return optuna.visualization.plot_parallel_coordinate(self.study)
+    
+    def plot_rank(self , params=None):
+        return optuna.visualization.plot_rank(self.study , params=params)
+    
+    def plot_optimization_history(self):
+        return optuna.visualization.plot_optimization_history(self.study)
+    
+    
+

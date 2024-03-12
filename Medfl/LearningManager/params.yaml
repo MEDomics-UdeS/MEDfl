@@ -13,7 +13,7 @@
   num_rounds: 100
   min_evalclient: 2
   # path_to_master_csv : 'D:\ESI\3CS\PFE\last_year\Code\MEDfl\notebooks\sapsii_score_knnimputed_eicu.csv'
-  path_to_master_csv : '/home/local/USHERBROOKE/saho6810/MEDfl/code/MEDfl/notebooks/data/masterDataSet/Mimic_train.csv'
+  path_to_master_csv : '/home/local/USHERBROOKE/saho6810/MEDfl/code/MEDfl/notebooks/data/masterDataSet/Mimic_ouael.csv'
   
   path_to_test_csv : '/home/local/USHERBROOKE/saho6810/MEDfl/code/MEDfl/notebooks/data/masterDataSet/Mimic_train.csv'
 

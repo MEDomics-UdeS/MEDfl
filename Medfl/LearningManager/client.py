@@ -95,9 +95,12 @@ class FlowerClient(fl.client.NumPyClient):
         Returns:
             Tuple: Parameters of the local model, number of training examples, and privacy information.
         """
+        print('\n -------------------------------- \n  this is the config of the client')
         print(f"[Client {self.cid}] fit, config: {config}")
+        print(config['epochs'])
+        print('\n -------------------------------- \n  ')
         self.local_model.set_parameters(parameters)
-        for _ in range(params["train_epochs"]):
+        for _ in range(config['epochs']):
             epsilon = self.local_model.train(
                 self.trainloader,
                 epoch=_,
@@ -131,4 +134,5 @@ class FlowerClient(fl.client.NumPyClient):
         )
         self.losses.append(loss)
         self.accuracies.append(accuracy)
+        
         return float(loss), len(self.valloader), {"accuracy": float(accuracy)}

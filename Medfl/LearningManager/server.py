@@ -86,8 +86,10 @@ class FlowerServer:
         if not isinstance(self.global_model, Model):
             raise TypeError("global_model argument must be a Model instance")
 
-        if not isinstance(self.strategy, Strategy):
-            raise TypeError("strategy argument must be a Strategy instance")
+        # if not isinstance(self.strategy, Strategy):
+        #     print(self.strategy)
+        #     print(isinstance(self.strategy, Strategy))
+        #     raise TypeError("strategy argument must be a Strategy instance")
 
         if not isinstance(self.num_clients, int):
             raise TypeError("num_clients argument must be an int")
@@ -145,6 +147,8 @@ class FlowerServer:
         loss, accuracy = self.global_model.evaluate(testloader, self.device)
         self.losses.append(loss)
         self.accuracies.append(accuracy)
+        if(server_round > 1 ):
+            self.strategy.study.tell(server_round-1 , accuracy)
         print(f"Server-side evaluation loss {loss} / accuracy {accuracy}")
         return loss, {"accuracy": accuracy}
 
