@@ -367,7 +367,8 @@ class ParamsOptimiser:
             optimizer_name = trial.suggest_categorical('optimizer', params['optimizer'])
             learning_rate = trial.suggest_float('learning_rate', **params['learning_rate'])
             num_rounds = trial.suggest_int('num_rounds', **params['num_rounds'])
-            
+            diff_privacy =  trial.suggest_int('diff_privacy', **params['diff_privacy'])
+            diff_privacy = True if diff_privacy == 1 else False
 
             if optimizer_name == 'Adam':
                 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
@@ -397,7 +398,7 @@ class ParamsOptimiser:
             # Create The server 
             server = FlowerServer(global_model, strategy = learning_strategy, num_rounds = num_rounds,
                        num_clients  = len(fl_dataset.trainloaders), 
-                       fed_dataset = fl_dataset,diff_privacy = False ,
+                       fed_dataset = fl_dataset,diff_privacy = diff_privacy,
                        # You can change the resources alocated for each client based on your machine 
                        client_resources={'num_cpus': 1.0, 'num_gpus': 0.0}
                        )
