@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Tuple
 import numpy as np
 import torch
 import torch.nn as nn
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score,roc_auc_score
 
 from .utils import params
 
@@ -151,13 +151,18 @@ class Model:
         Returns:
             Tuple[float, float]: The evaluation loss and accuracy.
         """
-        correct, total, loss, accuracy = 0, 0, 0.0, []
+        correct, total, loss, accuracy, auc = 0, 0, 0.0, [], []
         self.model.eval()
 
         with torch.no_grad():
             for X_test, y_test in val_loader:
                 y_hat = torch.squeeze(self.model(X_test), 1)
                 accuracy.append(accuracy_score(y_test, y_hat.round()))
+
+                y_prob = torch.squeeze(self.model(X_test), 1).detach().cpu().numpy()
+                # Calculate AUC
+                auc.append(roc_auc_score(y_test.cpu().numpy(), y_prob))
+
                 loss += self.criterion(y_hat, y_test).item()
                 total += y_test.size(0)
                 correct += np.sum(
@@ -165,7 +170,7 @@ class Model:
                 )
 
         loss /= len(val_loader.dataset)
-        return loss, np.mean(accuracy)
+        return loss, np.mean(accuracy), np.mean(auc)
 
     @staticmethod
     def save_model(model , model_name:str):

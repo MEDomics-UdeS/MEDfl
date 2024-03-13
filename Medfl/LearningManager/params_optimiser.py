@@ -12,6 +12,10 @@ from sklearn.base import BaseEstimator
 from sklearn.metrics import make_scorer, precision_score, recall_score, accuracy_score, f1_score,roc_auc_score, balanced_accuracy_score
 import optuna
 
+from Medfl.LearningManager.model import Model
+from Medfl.LearningManager.strategy import Strategy
+from Medfl.LearningManager.server import FlowerServer
+from Medfl.LearningManager.flpipeline import FLpipeline
 
 class BinaryClassifier(nn.Module):
     def __init__(self, input_size, num_layers, layer_size):
@@ -92,7 +96,7 @@ class CustomPyTorchClassifier(BaseEstimator):
 
 
 class ParamsOptimiser:
-    def __init__(self, X_train, y_train, X_test, y_test):
+    def __init__(self, X_train = None, y_train=None, X_test=None, y_test=None):
         if isinstance(X_train, pd.DataFrame):
             X_train = X_train.to_numpy()
         if isinstance(y_train, pd.Series):
@@ -353,6 +357,73 @@ class ParamsOptimiser:
         print(f"Best Hyperparameters: {best_params}")
 
         return optuna.visualization.plot_rank(th_study , params=['threashhold'])
+    
+    def federated_params_iptim(self , params , direction,  model, fl_dataset):
+
+        def objective(trial):
+          
+            criterion = nn.BCEWithLogitsLoss()
+
+            optimizer_name = trial.suggest_categorical('optimizer', params['optimizer'])
+            learning_rate = trial.suggest_float('learning_rate', **params['learning_rate'])
+            num_rounds = trial.suggest_int('num_rounds', **params['num_rounds'])
+            
+
+            if optimizer_name == 'Adam':
+                optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+            elif optimizer_name == 'SGD':
+                optimizer = optim.SGD(model.parameters(), lr=learning_rate)
+            elif optimizer_name == 'RMSprop':
+                optimizer = optim.RMSprop(model.parameters(), lr=learning_rate)
+
+            # Creating a new Model instance using the specific model created by DynamicModel
+            global_model = Model(model, optimizer, criterion)
+
+            # Get the initial params of the model 
+            init_params = global_model.get_parameters() 
+
+            fl_strategy = trial.suggest_categorical('fl_strategy', params['fl_strategy'])
+
+            learning_strategy = Strategy(fl_strategy, 
+                   fraction_fit = 1.0 ,
+                   fraction_evaluate = 1.0,
+                   min_fit_clients = 2,
+                   min_evaluate_clients = 2,
+                   min_available_clients = 2 , 
+                   initial_parameters=init_params)
+            
+            learning_strategy.create_strategy()
+
+            # Create The server 
+            server = FlowerServer(global_model, strategy = learning_strategy, num_rounds = num_rounds,
+                       num_clients  = len(fl_dataset.trainloaders), 
+                       fed_dataset = fl_dataset,diff_privacy = False ,
+                       # You can change the resources alocated for each client based on your machine 
+                       client_resources={'num_cpus': 1.0, 'num_gpus': 0.0}
+                       )
+            
+            ppl_1 = FLpipeline( name ="the first fl_pipeline",description = "this is our first FL pipeline",
+                   server = server)
+            
+            # Run the Traning of the model
+            history = ppl_1.server.run()
+
+            return server.auc[len(server.auc)-1]
+        
+
+       
+        study = optuna.create_study(direction=direction)
+        study.optimize(objective, n_trials=params['n_trials'])
+        
+        self.study = study
+
+        # Get the best hyperparameters
+        best_params = study.best_params
+        print(f"Best Hyperparameters: {best_params}")
+
+        return study
+
+
         
 
 

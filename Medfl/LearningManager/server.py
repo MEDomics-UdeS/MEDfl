@@ -78,6 +78,7 @@ class FlowerServer:
         self.diff_priv = diff_privacy
         self.accuracies = []
         self.losses = []
+        self.auc = []
         self.flower_clients = []
         self.validate()
 
@@ -144,12 +145,13 @@ class FlowerServer:
         self.global_model.set_parameters(
             parameters
         )  # Update model with the latest parameters
-        loss, accuracy = self.global_model.evaluate(testloader, self.device)
+        loss, accuracy ,auc = self.global_model.evaluate(testloader, self.device)
+        self.auc.append(auc)
         self.losses.append(loss)
         self.accuracies.append(accuracy)
-        if(server_round > 1 ):
-            self.strategy.study.tell(server_round-1 , accuracy)
-        print(f"Server-side evaluation loss {loss} / accuracy {accuracy}")
+        # if(server_round > 1 ):
+        #     self.strategy.study.tell(server_round-1 , accuracy)
+        # print(f"Server-side evaluation loss {loss} / accuracy {accuracy}")
         return loss, {"accuracy": accuracy}
 
     def run(self) -> None:

@@ -97,10 +97,10 @@ class FlowerClient(fl.client.NumPyClient):
         """
         print('\n -------------------------------- \n  this is the config of the client')
         print(f"[Client {self.cid}] fit, config: {config}")
-        print(config['epochs'])
+        # print(config['epochs'])
         print('\n -------------------------------- \n  ')
         self.local_model.set_parameters(parameters)
-        for _ in range(config['epochs']):
+        for _ in range(params["train_epochs"]):
             epsilon = self.local_model.train(
                 self.trainloader,
                 epoch=_,
