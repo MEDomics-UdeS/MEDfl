@@ -5,6 +5,7 @@ from typing import Dict, List, Optional, Tuple
 import flwr as fl
 import numpy as np
 
+import optuna
 
 
 
@@ -57,13 +58,25 @@ class Strategy:
         self.initial_parameters = initial_parameters
         self.evaluate_fn = None
         self.name = name
-        self.strategy_object = eval(
-            f"fl.server.strategy.{self.name}(\
-                   fraction_fit={self.fraction_fit},\
-                  fraction_evaluate= {self.fraction_evaluate},\
-                  min_fit_clients= {self.min_fit_clients},\
-                  min_evaluate_clients= {self.min_evaluate_clients},\
-                  min_available_clients={self.min_available_clients},\
-                  initial_parameters=fl.common.ndarrays_to_parameters(self.initial_parameters),\
-                  evaluate_fn={self.evaluate_fn})"
+    
+    def optuna_fed_optimization(self, direction:str , hpo_rate:int , params_config):
+        self.study = optuna.create_study(direction=direction)
+        self.hpo_rate = hpo_rate
+        self.params_config = params_config
+    
+ 
+    def create_strategy(self):
+        self.strategy_object = self.get_strategy_by_name()(
+            fraction_fit=self.fraction_fit,
+            fraction_evaluate=self.fraction_evaluate,
+            min_fit_clients=self.min_fit_clients,
+            min_evaluate_clients=self.min_evaluate_clients,
+            min_available_clients=self.min_available_clients,
+            initial_parameters=fl.common.ndarrays_to_parameters(self.initial_parameters),
+            evaluate_fn=self.evaluate_fn
         )
+    def get_strategy_by_name(self):
+        return eval(f"fl.server.strategy.{self.name}")
+    
+    
+

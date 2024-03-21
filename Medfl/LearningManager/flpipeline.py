@@ -62,8 +62,8 @@ class FLpipeline:
         if not isinstance(self.description, str):
             raise TypeError("description argument must be a string")
 
-        if not isinstance(self.server, FlowerServer):
-            raise TypeError("server argument must be a FlowerServer")
+        # if not isinstance(self.server, FlowerServer):
+        #     raise TypeError("server argument must be a FlowerServer")
 
     def create(self, result: str) -> None:
         """

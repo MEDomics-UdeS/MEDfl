@@ -46,8 +46,8 @@ class FlowerClient(fl.client.NumPyClient):
                 optimizer=self.local_model.optimizer,
                 data_loader=self.trainloader,
                 epochs=params["train_epochs"],
-                target_epsilon=params["EPSILON"],
-                target_delta=params["DELTA"],
+                target_epsilon=float(params["EPSILON"]),
+                target_delta= float(params["DELTA"]),
                 max_grad_norm=params["MAX_GRAD_NORM"],
             )
             setattr(self.local_model, "model", model)
@@ -95,7 +95,10 @@ class FlowerClient(fl.client.NumPyClient):
         Returns:
             Tuple: Parameters of the local model, number of training examples, and privacy information.
         """
+        print('\n -------------------------------- \n  this is the config of the client')
         print(f"[Client {self.cid}] fit, config: {config}")
+        # print(config['epochs'])
+        print('\n -------------------------------- \n  ')
         self.local_model.set_parameters(parameters)
         for _ in range(params["train_epochs"]):
             epsilon = self.local_model.train(
@@ -126,9 +129,10 @@ class FlowerClient(fl.client.NumPyClient):
         """
         print(f"[Client {self.cid}] evaluate, config: {config}")
         self.local_model.set_parameters(parameters)
-        loss, accuracy = self.local_model.evaluate(
+        loss, accuracy , auc = self.local_model.evaluate(
             self.valloader, device=self.device
         )
         self.losses.append(loss)
         self.accuracies.append(accuracy)
+        
         return float(loss), len(self.valloader), {"accuracy": float(accuracy)}
