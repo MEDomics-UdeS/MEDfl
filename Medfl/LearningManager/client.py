@@ -33,8 +33,20 @@ class FlowerClient(fl.client.NumPyClient):
         self.local_model = local_model
         self.trainloader = trainloader
         self.valloader = valloader
-        self.device = torch.device(f"cuda:{int(self.cid) % 4}" if torch.cuda.is_available() else "cpu")
-        self.local_model.model.to(self.device)
+        if torch.cuda.is_available():
+            num_cuda_devices = torch.cuda.device_count()
+            if num_cuda_devices > 0:
+                device_idx = int(self.cid) % num_cuda_devices
+                self.device = torch.device(f"cuda:{device_idx}")
+                self.local_model.model.to(self.device)
+            else:
+                # Handle case where CUDA is available but no CUDA devices are found
+                raise RuntimeError("CUDA is available, but no CUDA devices are found.")
+        else:
+            # Handle case where CUDA is not available
+            self.device = torch.device("cpu")
+            self.local_model.model.to(self.device)
+
         self.privacy_engine = PrivacyEngine(secure_mode=False)
         self.diff_priv = diff_priv
         self.epsilons = []

@@ -99,6 +99,8 @@ class Model:
         top1_acc = []
 
         for i, (X_train, y_train) in enumerate(train_loader):
+            X_train, y_train = X_train.to(device), y_train.to(device)  
+            
             self.optimizer.zero_grad()
 
             # compute output
@@ -138,9 +140,7 @@ class Model:
 
         return epsilon
 
-    def evaluate(
-        self, val_loader, device=torch.device("cpu")
-    ) -> Tuple[float, float]:
+    def evaluate(self, val_loader, device=torch.device("cpu")) -> Tuple[float, float]:
         """
         Evaluate the model on the given validation data.
 
@@ -156,22 +156,33 @@ class Model:
 
         with torch.no_grad():
             for X_test, y_test in val_loader:
+                X_test, y_test = X_test.to(device), y_test.to(device)  # Move data to device
+
                 y_hat = torch.squeeze(self.model(X_test), 1)
-                accuracy.append(accuracy_score(y_test, y_hat.round()))
+                print('/////////////////////////////////////////////////////////////////////')
+                print(y_hat.device)
+                print(y_test.device) 
+                
+                criterion = self.criterion.to(y_hat.device)
+                loss += criterion(y_hat, y_test).item()
 
-                y_prob = torch.squeeze(self.model(X_test), 1).detach().cpu().numpy()
-                # Calculate AUC
-                # auc.append(roc_auc_score(y_test.cpu().numpy(), y_prob))
 
-                loss += self.criterion(y_hat, y_test).item()
+                # Move y_hat to CPU for accuracy computation
+                y_hat_cpu = y_hat.cpu().detach().numpy()
+                accuracy.append(accuracy_score(y_test.cpu().numpy(), y_hat_cpu.round()))
+
+                # Move y_test to CPU for AUC computation
+                y_test_cpu = y_test.cpu().numpy()
+                y_prob_cpu = y_hat.cpu().detach().numpy()
+                if (len(np.unique(y_test_cpu)) != 1):
+                    auc.append(roc_auc_score(y_test_cpu, y_prob_cpu))
+
                 total += y_test.size(0)
-                correct += np.sum(
-                    y_hat.round().detach().numpy() == y_test.detach().numpy()
-                )
-        print('\n __________________________________ \n')
-        print(len(val_loader.dataset))
+                correct += np.sum(y_hat_cpu.round() == y_test_cpu)
+
         loss /= len(val_loader.dataset)
         return loss, np.mean(accuracy), np.mean(auc)
+
 
     @staticmethod
     def save_model(model , model_name:str):
@@ -194,16 +205,21 @@ class Model:
             raise Exception(f"Error saving the model: {str(e)}")
     
     @staticmethod
-    def load_model(model_path:str):
+    def load_model(model_path: str):
         """
         Loads a PyTorch model from a file.
 
         Args:
-            model_name (str): Name of the model file to be loaded.
+            model_path (str): Path to the model file to be loaded.
 
         Returns:
             torch.nn.Module: Loaded PyTorch model.
         """
-        loadedModel = torch.load(model_path)
-        return loadedModel
+        # Ensure models are loaded onto the CPU when CUDA is not available
+        if torch.cuda.is_available():
+            loaded_model = torch.load(model_path)
+        else:
+            loaded_model = torch.load(model_path, map_location=torch.device('cpu'))
+        return loaded_model
+
 

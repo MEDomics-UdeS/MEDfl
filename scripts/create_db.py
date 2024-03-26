@@ -4,7 +4,7 @@ from mysql.connector import Error
 from Medfl.LearningManager.utils import params
 
 try:
-    mydb = mysql.connector.connect(host="localhost", user="root", password="")
+    mydb = mysql.connector.connect(host="localhost", user="ouael", password="ouael")
     mycursor = mydb.cursor()
 
     # Create the 'MEDfl' database if it doesn't exist
@@ -16,6 +16,9 @@ try:
     # Get the list of all tables in the database
     mycursor.execute("SHOW TABLES")
     tables = mycursor.fetchall()
+
+    
+
 
     # Drop each table one by one
     for table in tables:
@@ -48,9 +51,7 @@ try:
      NodeName varchar(255) DEFAULT NULL,\
      train tinyint(1) DEFAULT '1',\
      NetId int DEFAULT NULL,\
-     PRIMARY KEY (NodeId),\
-     KEY net_id (NetId),\
-     CONSTRAINT net_id FOREIGN KEY (NetId) REFERENCES Networks (NetId) ON DELETE SET NULL ON UPDATE SET NULL\
+     PRIMARY KEY (NodeId)\
     )")
 
     data_df = pd.read_csv(params['path_to_master_csv'])
@@ -91,8 +92,7 @@ try:
      f1score LONG,\
      fpr LONG,\
      tpr LONG, \
-     PRIMARY KEY (pipelineId , nodename), \
-     FOREIGN KEY (pipelineId) REFERENCES FLpipeline(id)\
+     PRIMARY KEY (pipelineId , nodename)\
     ) ")
 
     # Create FederatedDataset table
@@ -101,11 +101,7 @@ try:
      FLsetupId int DEFAULT NULL,\
      FLpipeId int DEFAULT NULL,\
      name varchar(255) NOT NULL,\
-     PRIMARY KEY (FedId),\
-     KEY FedDatasets_ibfk_1 (FLsetupId),\
-     KEY FedDatasets_ibfk_2 (FLpipeId),\
-     CONSTRAINT FedDatasets_ibfk_1 FOREIGN KEY (FLsetupId) REFERENCES FLsetup(FLsetupId) ON DELETE SET NULL ON UPDATE SET NULL,\
-     CONSTRAINT FedDatasets_ibfk_2 FOREIGN KEY (FLpipeId) REFERENCES FLpipeline(id) ON DELETE SET NULL ON UPDATE SET NULL\
+     PRIMARY KEY (FedId)\
     )")
 
     # Commit and close the cursor

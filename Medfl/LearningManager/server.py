@@ -51,10 +51,9 @@ class FlowerServer:
             diff_privacy (bool, optional): Whether differential privacy is used during the federated learning process.
                                            Default is False.
         """
-        # self.device = torch.device(
-        #     f"cuda" if torch.cuda.is_available() else "cpu"
-        # )
-        self.device= "cpu"
+        self.device = torch.device(
+            f"cuda" if torch.cuda.is_available() else "cpu"
+        )
         self.global_model = global_model
         self.params = global_model.get_parameters()
         self.global_model.model = global_model.model.to(self.device)
@@ -111,10 +110,18 @@ class FlowerServer:
         Returns:
             FlowerClient: A FlowerClient object representing the individual client.
         """
+        print('////////////////////////////////////////////////////////////////////////////////////////////////////////')
+        print("i m here")
         device = torch.device(
             f"cuda:{int(cid) % 4}" if torch.cuda.is_available() else "cpu"
         )
         client_model = copy.deepcopy(self.global_model)
+
+     
+        if device.type == 'cuda':
+            print("the model is runing on CUDA")
+        else:
+            print("the model is runing on CPU")
         
         trainloader = self.fed_dataset.trainloaders[int(cid)]
         valloader = self.fed_dataset.valloaders[int(cid)]
