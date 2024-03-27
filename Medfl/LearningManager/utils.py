@@ -21,7 +21,7 @@ with open(global_yaml_path) as g:
     global_params = yaml.load(g, Loader=SafeLoader)
 
 
-def custom_classification_report(y_true, y_pred):
+def custom_classification_report(y_true, y_pred_prob):
     """
     Compute custom classification report metrics including accuracy, sensitivity, specificity, precision, NPV,
     F1-score, false positive rate, and true positive rate.
@@ -33,6 +33,9 @@ def custom_classification_report(y_true, y_pred):
     Returns:
         dict: A dictionary containing custom classification report metrics.
     """
+    y_pred = y_pred_prob.round()
+
+    auc = roc_auc_score(y_true, y_pred_prob)  # Calculate AUC
 
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
 
@@ -78,6 +81,7 @@ def custom_classification_report(y_true, y_pred):
         "F1-score": round(f1, 3),
         "False positive rate": round(fpr, 3),
         "True positive rate": round(tpr, 3),
+        "auc": auc
     }
 
 
@@ -96,10 +100,10 @@ def test(model, test_loader, device=torch.device("cpu")):
 
     model.eval()
     with torch.no_grad():
-        X_test, y_test = test_loader.dataset[:][0], test_loader.dataset[:][1]
-        y_hat = torch.squeeze(model(X_test), 1).round()
+        X_test, y_test = test_loader.dataset[:][0].to(device), test_loader.dataset[:][1].to(device)
+        y_hat_prob = torch.squeeze(model(X_test), 1).cpu()
 
-    return custom_classification_report(y_test, y_hat)
+    return custom_classification_report(y_test.cpu().numpy(), y_hat_prob.cpu().numpy())
 
 
 column_map = {"object": "VARCHAR(255)", "int64": "INT", "float64": "FLOAT"}

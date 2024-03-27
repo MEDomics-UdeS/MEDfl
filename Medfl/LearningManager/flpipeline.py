@@ -7,6 +7,7 @@ import pandas as pd
 # File: create_query.py
 from sqlalchemy import text
 from torch.utils.data import DataLoader, TensorDataset
+import torch 
 
 from Medfl.LearningManager.server import FlowerServer
 from Medfl.LearningManager.utils import params, test
@@ -99,7 +100,8 @@ class FLpipeline:
         # Placeholder code for deleting the FLpipeline entry from the database based on the name.
         # You need to implement the actual deletion based on your database setup.
         my_eng.execute(DELETE_FLPIPELINE_QUERY.format(self.name))
-    
+
+
     def test_by_node(self, node_name: str, test_frac=1) -> dict:
         """
         Test the FLpipeline by node with the specified test_frac.
@@ -117,21 +119,27 @@ class FLpipeline:
             self.server.global_model,
             self.server.fed_dataset.testloaders[idx],
         )
+        
+        # Move model to GPU if available
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        global_model.model.to(device)
+        
+        # Prepare test data
         test_data = test_loader.dataset
-        test_data = TensorDataset(
-            test_data[: int(test_frac * len(test_data))][0],
-            test_data[: int(test_frac * len(test_data))][1],
-        )
-        test_loader = DataLoader(
-            test_data, batch_size=params["test_batch_size"]
-        )
-        classification_report = test(
-            model=global_model.model, test_loader=test_loader
-        )
+        num_samples = int(test_frac * len(test_data))
+        test_data = TensorDataset(test_data[:num_samples][0].to(device), test_data[:num_samples][1].to(device))
+        
+        # Create DataLoader for test data
+        test_loader = DataLoader(test_data, batch_size=params["test_batch_size"])
+
+        # Perform testing
+        classification_report = test(model=global_model.model, test_loader=test_loader, device=device)
+
         return {
             "node_name": node_name,
             "classification_report": str(classification_report),
         }
+
 
     def auto_test(self, test_frac=1) -> List[dict]:
         """

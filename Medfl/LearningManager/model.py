@@ -159,9 +159,7 @@ class Model:
                 X_test, y_test = X_test.to(device), y_test.to(device)  # Move data to device
 
                 y_hat = torch.squeeze(self.model(X_test), 1)
-                print('/////////////////////////////////////////////////////////////////////')
-                print(y_hat.device)
-                print(y_test.device) 
+               
                 
                 criterion = self.criterion.to(y_hat.device)
                 loss += criterion(y_hat, y_test).item()

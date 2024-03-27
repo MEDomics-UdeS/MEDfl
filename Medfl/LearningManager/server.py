@@ -110,18 +110,11 @@ class FlowerServer:
         Returns:
             FlowerClient: A FlowerClient object representing the individual client.
         """
-        print('////////////////////////////////////////////////////////////////////////////////////////////////////////')
-        print("i m here")
+        
         device = torch.device(
             f"cuda:{int(cid) % 4}" if torch.cuda.is_available() else "cpu"
         )
         client_model = copy.deepcopy(self.global_model)
-
-     
-        if device.type == 'cuda':
-            print("the model is runing on CUDA")
-        else:
-            print("the model is runing on CPU")
         
         trainloader = self.fed_dataset.trainloaders[int(cid)]
         valloader = self.fed_dataset.valloaders[int(cid)]
@@ -158,9 +151,7 @@ class FlowerServer:
         self.auc.append(auc)
         self.losses.append(loss)
         self.accuracies.append(accuracy)
-        # if(server_round > 1 ):
-        #     self.strategy.study.tell(server_round-1 , accuracy)
-        # print(f"Server-side evaluation loss {loss} / accuracy {accuracy}")
+        
         return loss, {"accuracy": accuracy}
 
     def run(self) -> None:
