@@ -11,6 +11,7 @@ import json
 
 
 import pandas as pd
+import numpy as np
 
 yaml_path = pkg_resources.resource_filename(__name__, "params.yaml")
 with open(yaml_path) as g:
@@ -33,7 +34,7 @@ def custom_classification_report(y_true, y_pred_prob):
     Returns:
         dict: A dictionary containing custom classification report metrics.
     """
-    y_pred = y_pred_prob.round()
+    y_pred = (y_pred_prob).round()  # Round absolute values of predicted probabilities to the nearest integer
 
     auc = roc_auc_score(y_true, y_pred_prob)  # Calculate AUC
 
