@@ -10,7 +10,7 @@ import optuna
 
 
 
-class Strategy:
+class  Strategy:
     """
     A class representing a strategy for Federated Learning.
 
