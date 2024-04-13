@@ -5,17 +5,14 @@ import yaml
 import pkg_resources
 import os
 
-# Load base_url from global_params.yaml
-parent_directory = os.path.abspath(os.path.join(pkg_resources.resource_filename(__name__, ''), '..'))
-global_params_path = os.path.join(parent_directory, 'global_params.yaml')
-
-with open(global_params_path, 'r') as file:
-    params = yaml.safe_load(file)
-    base_url = params['base_url']
+# Get the directory of the current script
+current_directory = os.path.dirname(os.path.abspath(__file__))
 
 # Load configuration from the config file
+config_file_path = os.path.join(current_directory, 'config.ini')
+
 config = ConfigParser()
-config.read(base_url + '/scripts/config.ini')
+config.read(config_file_path)
 mysql_config = config['mysql']
 
 

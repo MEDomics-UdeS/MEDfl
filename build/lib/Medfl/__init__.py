@@ -1,2 +1,2 @@
-# from .LearningManager import *
-# from .NetManager import *
+from .LearningManager import *
+from .NetManager import *

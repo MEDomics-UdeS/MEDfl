@@ -14,7 +14,7 @@ with open('requirements.txt') as f:
 
 setup(
     name="Medfl",
-    version="0.1.4",
+    version="0.1.7",
     author="MEDomics consortium",
     author_email="medomics.info@gmail.com",
     description="Python Open-source package for simulating federated learning and differential privacy",
@@ -37,5 +37,8 @@ setup(
     scripts=['scripts/setup_mysql.sh'],
     python_requires='>=3.8,<3.11',
     packages=find_packages(exclude=['docs', 'tests']),
-    install_requires=requirements
+    install_requires=requirements,
+    package_data={
+        'scripts': ['config.ini'],  # Include the config.ini file from the scripts folder
+    }
 )
