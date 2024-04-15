@@ -41,4 +41,5 @@ setup(
     package_data={
         'scripts': ['config.ini'],  # Include the config.ini file from the scripts folder
     }
+ 
 )

@@ -13,6 +13,9 @@ import json
 import pandas as pd
 import numpy as np
 
+import os
+import configparser
+
 yaml_path = pkg_resources.resource_filename(__name__, "params.yaml")
 with open(yaml_path) as g:
     params = yaml.load(g, Loader=SafeLoader)
@@ -20,6 +23,25 @@ with open(yaml_path) as g:
 global_yaml_path = pkg_resources.resource_filename(__name__, "../../global_params.yaml")
 with open(global_yaml_path) as g:
     global_params = yaml.load(g, Loader=SafeLoader)
+
+
+
+
+# Default path for the config file
+DEFAULT_CONFIG_PATH = 'config.ini'
+
+def load_config(config_path=None):
+    config_path = config_path or os.environ.get('MEDFL_CONFIG_PATH', DEFAULT_CONFIG_PATH)
+    if os.path.exists(config_path):
+        config = configparser.ConfigParser()
+        config.read(config_path)
+        return config
+    else:
+        raise FileNotFoundError(f"Config file '{config_path}' not found.")
+
+# Function to allow users to set config path programmatically
+def set_config_path(config_path):
+    os.environ['MEDFL_CONFIG_PATH'] = config_path
 
 
 def custom_classification_report(y_true, y_pred_prob):

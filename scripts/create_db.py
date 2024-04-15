@@ -3,8 +3,21 @@ import pandas as pd
 from mysql.connector import Error
 from Medfl.LearningManager.utils import params
 
+from configparser import ConfigParser
+import os
+
 try:
-    mydb = mysql.connector.connect(host="localhost", user="ouael", password="ouael")
+    # Get the directory of the current script
+    current_directory = os.path.dirname(os.path.abspath(__file__))
+
+    # Load configuration from the config file
+    config_file_path = os.path.join(current_directory, 'config.ini')
+
+    config = ConfigParser()
+    config.read(config_file_path)
+    mysql_config = config['mysql']
+
+    mydb = mysql.connector.connect(host=mysql_config['host'], user=mysql_config['user'], password=mysql_config['password'])
     mycursor = mydb.cursor()
 
     # Create the 'MEDfl' database if it doesn't exist
