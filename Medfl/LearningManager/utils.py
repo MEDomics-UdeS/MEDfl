@@ -6,7 +6,10 @@ import yaml
 from sklearn.metrics import *
 from yaml.loader import SafeLoader
 
-from scripts.base import *
+
+from Medfl.NetManager.database_connector import DatabaseManager
+
+# from scripts.base import *
 import json
 
 
@@ -16,32 +19,58 @@ import numpy as np
 import os
 import configparser
 
-yaml_path = pkg_resources.resource_filename(__name__, "params.yaml")
+import subprocess
+import ast
+
+from sqlalchemy import text
+
+
+# Get the directory of the current script
+current_directory = os.path.dirname(os.path.abspath(__file__))
+
+# Load configuration from the config file
+yaml_path = os.path.join(current_directory, 'params.yaml')
+
 with open(yaml_path) as g:
     params = yaml.load(g, Loader=SafeLoader)
 
-global_yaml_path = pkg_resources.resource_filename(__name__, "../../global_params.yaml")
-with open(global_yaml_path) as g:
-    global_params = yaml.load(g, Loader=SafeLoader)
-
-
+# global_yaml_path = pkg_resources.resource_filename(__name__, "../../global_params.yaml")
+# with open(global_yaml_path) as g:
+#     global_params = yaml.load(g, Loader=SafeLoader)
 
 
 # Default path for the config file
-DEFAULT_CONFIG_PATH = 'config.ini'
+DEFAULT_CONFIG_PATH = 'db_config.ini'
 
-def load_config(config_path=None):
-    config_path = config_path or os.environ.get('MEDFL_CONFIG_PATH', DEFAULT_CONFIG_PATH)
-    if os.path.exists(config_path):
-        config = configparser.ConfigParser()
-        config.read(config_path)
-        return config
+
+def load_db_config():
+    config = os.environ.get('MEDFL_DB_CONFIG')
+
+    if config:
+        return ast.literal_eval(config)
     else:
-        raise FileNotFoundError(f"Config file '{config_path}' not found.")
+        raise ValueError(f"MEDfl db config not found")
 
 # Function to allow users to set config path programmatically
-def set_config_path(config_path):
-    os.environ['MEDFL_CONFIG_PATH'] = config_path
+
+
+def set_db_config(config_path):
+    config = configparser.ConfigParser()
+    config.read(config_path)
+    if (config['mysql']):
+        os.environ['MEDFL_DB_CONFIG'] = str(dict(config['mysql']))
+    else:
+        raise ValueError(f"mysql key not found in file '{config_path}'")
+
+
+
+# Create databas
+
+
+def create_MEDfl_db():
+    script_path = os.path.join(os.path.dirname(
+        __file__), 'scripts', 'create_db.sh')
+    subprocess.run(['sh', script_path], check=True)
 
 
 def custom_classification_report(y_true, y_pred_prob):
@@ -56,7 +85,8 @@ def custom_classification_report(y_true, y_pred_prob):
     Returns:
         dict: A dictionary containing custom classification report metrics.
     """
-    y_pred = (y_pred_prob).round()  # Round absolute values of predicted probabilities to the nearest integer
+    y_pred = (y_pred_prob).round(
+    )  # Round absolute values of predicted probabilities to the nearest integer
 
     auc = roc_auc_score(y_true, y_pred_prob)  # Calculate AUC
 
@@ -123,7 +153,8 @@ def test(model, test_loader, device=torch.device("cpu")):
 
     model.eval()
     with torch.no_grad():
-        X_test, y_test = test_loader.dataset[:][0].to(device), test_loader.dataset[:][1].to(device)
+        X_test, y_test = test_loader.dataset[:][0].to(
+            device), test_loader.dataset[:][1].to(device)
         y_hat_prob = torch.squeeze(model(X_test), 1).cpu()
 
     return custom_classification_report(y_test.cpu().numpy(), y_hat_prob.cpu().numpy())
@@ -139,6 +170,9 @@ def empty_db():
     Returns:
         None
     """
+    db_manager = DatabaseManager()
+    db_manager.connect()
+    my_eng = db_manager.get_connection()
 
     # my_eng.execute(text(f"DELETE FROM  {'DataSets'}"))
     my_eng.execute(text(f"DELETE FROM {'Nodes'}"))
@@ -156,6 +190,7 @@ def empty_db():
     my_eng.execute(text(f"DROP TABLE IF EXISTS {'MasterDataset'}"))
     my_eng.execute(text(f"DROP TABLE IF EXISTS {'DataSets'}"))
 
+
 def get_pipeline_from_name(name):
     """
     Get the pipeline ID from its name in the database.
@@ -166,6 +201,9 @@ def get_pipeline_from_name(name):
     Returns:
         int: ID of the pipeline.
     """
+    db_manager = DatabaseManager()
+    db_manager.connect()
+    my_eng = db_manager.get_connection()
 
     NodeId = int(
         pd.read_sql(
@@ -173,6 +211,7 @@ def get_pipeline_from_name(name):
         ).iloc[0, 0]
     )
     return NodeId
+
 
 def get_pipeline_confusion_matrix(pipeline_id):
     """
@@ -184,14 +223,18 @@ def get_pipeline_confusion_matrix(pipeline_id):
     Returns:
         dict: A dictionary representing the global confusion matrix.
     """
+    db_manager = DatabaseManager()
+    db_manager.connect()
+    my_eng = db_manager.get_connection()
 
     data = pd.read_sql(
-            text(f"SELECT confusionmatrix FROM testResults WHERE pipelineid = '{pipeline_id}'"), my_eng
-        )
-    
+        text(
+            f"SELECT confusionmatrix FROM testResults WHERE pipelineid = '{pipeline_id}'"), my_eng
+    )
+
     # Convert the column of strings into a list of dictionaries representing confusion matrices
     confusion_matrices = [
-    json.loads(matrix.replace("'", "\"")) for matrix in data['confusionmatrix']
+        json.loads(matrix.replace("'", "\"")) for matrix in data['confusionmatrix']
     ]
 
     # Initialize variables for global confusion matrix
@@ -214,7 +257,8 @@ def get_pipeline_confusion_matrix(pipeline_id):
     # Return the list of dictionaries representing confusion matrices
     return global_confusion_matrix
 
-def get_node_confusion_matrix(pipeline_id , node_name):
+
+def get_node_confusion_matrix(pipeline_id, node_name):
     """
     Get the confusion matrix for a specific node in a pipeline based on test results.
 
@@ -225,19 +269,23 @@ def get_node_confusion_matrix(pipeline_id , node_name):
     Returns:
         dict: A dictionary representing the confusion matrix for the specified node.
     """
+    db_manager = DatabaseManager()
+    db_manager.connect()
+    my_eng = db_manager.get_connection()
 
     data = pd.read_sql(
-            text(f"SELECT confusionmatrix FROM testResults WHERE pipelineid = '{pipeline_id}' AND nodename = '{node_name}'"), my_eng
-        )
-    
+        text(
+            f"SELECT confusionmatrix FROM testResults WHERE pipelineid = '{pipeline_id}' AND nodename = '{node_name}'"), my_eng
+    )
+
     # Convert the column of strings into a list of dictionaries representing confusion matrices
     confusion_matrices = [
-    json.loads(matrix.replace("'", "\"")) for matrix in data['confusionmatrix']
+        json.loads(matrix.replace("'", "\"")) for matrix in data['confusionmatrix']
     ]
 
-  
     # Return the list of dictionaries representing confusion matrices
     return confusion_matrices[0]
+
 
 def get_pipeline_result(pipeline_id):
     """
@@ -249,7 +297,12 @@ def get_pipeline_result(pipeline_id):
     Returns:
         pandas.DataFrame: DataFrame containing test results for the specified pipeline.
     """
+    db_manager = DatabaseManager()
+    db_manager.connect()
+    my_eng = db_manager.get_connection()
+
     data = pd.read_sql(
-            text(f"SELECT * FROM testResults WHERE pipelineid = '{pipeline_id}'"), my_eng
-        )
+        text(
+            f"SELECT * FROM testResults WHERE pipelineid = '{pipeline_id}'"), my_eng
+    )
     return data

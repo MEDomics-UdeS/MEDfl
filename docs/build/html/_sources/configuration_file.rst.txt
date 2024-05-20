@@ -12,7 +12,7 @@ In the file ``MEDfl/global_params.yaml``, you need to update the base URL parame
 
 MySQL Configuration
 -------------------
-In the file ``MEDfl/scripts/config.ini``, you can specify the SQL connection parameters.
+In the file ``MEDfl/scripts/db_config.ini``, you can specify the SQL connection parameters.
 
 .. code-block:: bash
 

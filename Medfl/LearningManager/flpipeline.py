@@ -11,11 +11,10 @@ import torch
 
 from Medfl.LearningManager.server import FlowerServer
 from Medfl.LearningManager.utils import params, test
-from scripts.base import my_eng
 from Medfl.NetManager.net_helper import get_flpipeline_from_name
 from Medfl.NetManager.net_manager_queries import (CREATE_FLPIPELINE_QUERY,
                                                   DELETE_FLPIPELINE_QUERY , CREATE_TEST_RESULTS_QUERY)
-
+from Medfl.NetManager.database_connector import DatabaseManager
 
 def create_query(name, description, creation_date, result):
     query = text(
@@ -50,6 +49,10 @@ class FLpipeline:
         self.server = server
         self.validate()
 
+        db_manager = DatabaseManager()
+        db_manager.connect()
+        self.eng = db_manager.get_connection()
+
     def validate(self) -> None:
         """
         Validate the name, description, and server attributes.
@@ -81,7 +84,7 @@ class FLpipeline:
             creation_date=creation_date,
             result=result,
         )
-        my_eng.execute(text(query))
+        self.eng.execute(text(query))
         self.id = get_flpipeline_from_name(self.name)
         try:
             self.server.fed_dataset.update(
@@ -99,7 +102,7 @@ class FLpipeline:
         """
         # Placeholder code for deleting the FLpipeline entry from the database based on the name.
         # You need to implement the actual deletion based on your database setup.
-        my_eng.execute(DELETE_FLPIPELINE_QUERY.format(self.name))
+        self.eng.execute(DELETE_FLPIPELINE_QUERY.format(self.name))
 
 
     def test_by_node(self, node_name: str, test_frac=1) -> dict:
@@ -179,7 +182,7 @@ class FLpipeline:
                       fpr= classification_report_dict['False positive rate'] ,
                       tpr= classification_report_dict['True positive rate'] 
                 )
-               my_eng.execute(text(query))
+               self.eng.execute(text(query))
            except Exception as e:
                 # This block will catch any other exceptions
                 print(f"An unexpected error occurred: {e}")

@@ -10,6 +10,8 @@ from .network import Network
 
 from .node import Node
 
+from Medfl.NetManager.database_connector import DatabaseManager
+
 
 class FLsetup:
     def __init__(self, name: str, description: str, network: Network):
@@ -28,6 +30,12 @@ class FLsetup:
         self.validate()
         self.fed_dataset = None
 
+        db_manager = DatabaseManager()
+        db_manager.connect()
+        self.eng = db_manager.get_connection()
+
+        
+
     def validate(self):
         """Validate name, description, and network."""
         if not isinstance(self.name, str):
@@ -45,7 +53,7 @@ class FLsetup:
         """Create an FL setup."""
         creation_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         netid = get_netid_from_name(self.network.name)
-        my_eng.execute(
+        self.eng.execute(
             text(CREATE_FLSETUP_QUERY),
             {
                 "name": self.name,
@@ -61,7 +69,7 @@ class FLsetup:
         """Delete the FL setup."""
         if self.fed_dataset is not None:
             self.fed_dataset.delete_Flsetup(FLsetupId=self.id)
-        my_eng.execute(text(DELETE_FLSETUP_QUERY), {"name": self.name})
+        self.eng.execute(text(DELETE_FLSETUP_QUERY), {"name": self.name})
 
     @classmethod
     def read_setup(cls, FLsetupId: int):
@@ -73,6 +81,10 @@ class FLsetup:
         Returns:
             FLsetup: An instance of the FLsetup class with the specified FLsetupId.
         """
+        db_manager = DatabaseManager()
+        db_manager.connect()
+        my_eng = db_manager.get_connection()
+
         res = pd.read_sql(
             text(READ_SETUP_QUERY), my_eng, params={"flsetup_id": FLsetupId}
         ).iloc[0]
@@ -99,6 +111,10 @@ class FLsetup:
         Returns:
             DataFrame: A DataFrame containing information about all the FL setups.
         """
+        db_manager = DatabaseManager()
+        db_manager.connect()
+        my_eng = db_manager.get_connection()
+
         Flsetups = pd.read_sql(text(READ_ALL_SETUPS_QUERY), my_eng)
         return Flsetups
 
@@ -125,7 +141,7 @@ class FLsetup:
 
         # Update the Column name of the auto flSetup
         query = f"UPDATE FLsetup SET column_name = '{column_name}' WHERE name = '{self.name}'"
-        my_eng.execute(text(query))
+        self.eng.execute(text(query))
         
 
         # Add Network to DB
@@ -135,7 +151,7 @@ class FLsetup:
 
         assert self.network.mtable_exists == 1
         node_names = pd.read_sql(
-            text(READ_DISTINCT_NODES_QUERY.format(column_name)), my_eng
+            text(READ_DISTINCT_NODES_QUERY.format(column_name)), self.eng
         )
 
         nodes = [Node(val[0], 1) for val in node_names.values.tolist()]
@@ -219,13 +235,13 @@ class FLsetup:
             text(
                 f"SELECT Nodes.NodeName  FROM Nodes WHERE Nodes.NetId = {netid} AND Nodes.train = 1 "
             ),
-            my_eng,
+            self.eng,
         )
         test_nodes = pd.read_sql(
             text(
                 f"SELECT Nodes.NodeName  FROM Nodes WHERE Nodes.NetId = {netid} AND Nodes.train = 0 "
             ),
-            my_eng,
+            self.eng,
         )
 
         train_nodes = [
@@ -300,5 +316,5 @@ class FLsetup:
             text(
                 f"SELECT * FROM FedDatasets WHERE FLsetupId = {get_flsetupid_from_name(self.name)}"
             ),
-            my_eng,
+            self.eng,
         )

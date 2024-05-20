@@ -8,8 +8,7 @@ import pandas as pd
 from torch.utils.data import TensorDataset
 import numpy as np
 
-
-from scripts.base import my_eng
+from Medfl.NetManager.database_connector import DatabaseManager
 
 
 def is_str(data_df, row, x):
@@ -46,10 +45,12 @@ def process_eicu(data_df):
     non_numeric_columns = data_df.select_dtypes(exclude=[np.number]).columns
 
     # Fill NaN in numeric columns with mean
-    data_df[numeric_columns] = data_df[numeric_columns].fillna(data_df[numeric_columns].mean())
+    data_df[numeric_columns] = data_df[numeric_columns].fillna(
+        data_df[numeric_columns].mean())
 
     # Fill NaN in non-numeric columns with 'Unknown'
-    data_df[non_numeric_columns] = data_df[non_numeric_columns].fillna('Unknown')
+    data_df[non_numeric_columns] = data_df[non_numeric_columns].fillna(
+        'Unknown')
 
     try:
         data_df = data_df.reset_index(drop=True)
@@ -92,7 +93,6 @@ def process_data_after_reading(data, output, fill_strategy="mean",  fit_encode=[
 
     X = data
 
-    
     # remove indisered columns when reading the dataframe from the DB
     for column in to_drop:
         try:
@@ -102,7 +102,6 @@ def process_data_after_reading(data, output, fill_strategy="mean",  fit_encode=[
         except Exception as e:
             raise e
 
-    
     # Get the DATAset Features
     features = [col for col in X.columns if col != output]
 
@@ -130,12 +129,12 @@ def get_nodeid_from_name(name):
     Returns:
         int or None: NodeId or None if not found.
     """
+    db_manager = DatabaseManager()
+    db_manager.connect()
+    my_eng = db_manager.get_connection()
 
-    NodeId = int(
-        pd.read_sql(
-            text(f"SELECT NodeId FROM Nodes WHERE NodeName = '{name}'"), my_eng
-        ).iloc[0, 0]
-    )
+    result_proxy = my_eng.execute(f"SELECT NodeId FROM Nodes WHERE NodeName = '{name}'")
+    NodeId = int(result_proxy.fetchone()[0])
     return NodeId
 
 
@@ -149,13 +148,13 @@ def get_netid_from_name(name):
     Returns:
         int or None: NetId or None if not found.
     """
+    db_manager = DatabaseManager()
+    db_manager.connect()
+    my_eng = db_manager.get_connection()
+
     try:
-        NetId = int(
-            pd.read_sql(
-                text(f"SELECT NetId FROM Networks WHERE NetName = '{name}'"),
-                my_eng,
-            ).iloc[0, 0]
-        )
+        result_proxy = my_eng.execute(f"SELECT NetId FROM Networks WHERE NetName = '{name}'")
+        NetId = int(result_proxy.fetchone()[0])
     except:
         NetId = None
     return NetId
@@ -171,13 +170,15 @@ def get_flsetupid_from_name(name):
     Returns:
         int or None: FLsetupId or None if not found.
     """
+    db_manager = DatabaseManager()
+    db_manager.connect()
+    my_eng = db_manager.get_connection()
+
     try:
-        id = int(
-            pd.read_sql(
-                text(f"SELECT FLsetupId FROM FLsetup WHERE name = '{name}'"),
-                my_eng,
-            ).iloc[0, 0]
-        )
+        
+         result_proxy = my_eng.execute(f"SELECT FLsetupId FROM FLsetup WHERE name = '{name}'")
+         id = int(result_proxy.fetchone()[0])
+   
     except:
         id = None
     return id
@@ -193,13 +194,14 @@ def get_flpipeline_from_name(name):
     Returns:
         int or None: FLpipelineId or None if not found.
     """
+    db_manager = DatabaseManager()
+    db_manager.connect()
+    my_eng = db_manager.get_connection()
+
     try:
-        id = int(
-            pd.read_sql(
-                text(f"SELECT id FROM FLpipeline WHERE name = '{name}'"),
-                my_eng,
-            ).iloc[0, 0]
-        )
+
+        result_proxy = my_eng.execute(f"SELECT id FROM FLpipeline WHERE name = '{name}'")
+        id = int(result_proxy.fetchone()[0])
     except:
         id = None
     return id
@@ -215,13 +217,14 @@ def get_feddataset_id_from_name(name):
     Returns:
         int or None: FedId or None if not found.
     """
+    db_manager = DatabaseManager()
+    db_manager.connect()
+    my_eng = db_manager.get_connection()
+
     try:
-        id = int(
-            pd.read_sql(
-                text(f"SELECT FedId FROM FedDatasets WHERE name = '{name}'"),
-                my_eng,
-            ).iloc[0, 0]
-        )
+        
+        result_proxy = my_eng.execute(f"SELECT FedId FROM FedDatasets WHERE name = '{name}'")
+        id = int(result_proxy.fetchone()[0])
     except:
         id = None
     return id
@@ -234,10 +237,12 @@ def master_table_exists():
     Returns:
         bool: True if the table exists, False otherwise.
     """
-    
-    return pd.read_sql(
-        text(
-            " SELECT EXISTS ( SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_NAME = 'MasterDataset' )"
-        ),
-        my_eng,
-    ).values[0][0]
+    db_manager = DatabaseManager()
+    db_manager.connect()
+    my_eng = db_manager.get_connection()
+
+
+    sql_query = text("SELECT EXISTS (SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_NAME = 'MasterDataset')")
+    result = my_eng.execute(sql_query)
+    exists = result.scalar()
+    return exists

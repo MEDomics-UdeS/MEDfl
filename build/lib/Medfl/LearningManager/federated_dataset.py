@@ -1,7 +1,6 @@
-from scripts.base import *
 from Medfl.NetManager.net_helper import *
 from Medfl.NetManager.net_manager_queries import *
-
+from Medfl.NetManager.database_connector import DatabaseManager
 
 class FederatedDataset:
     def __init__(
@@ -31,6 +30,10 @@ class FederatedDataset:
         self.testloaders = testloaders
         self.size = len(self.trainloaders[0].dataset[0][0])
 
+        db_manager = DatabaseManager()
+        db_manager.connect()
+        self.eng = db_manager.get_connection()
+
     def create(self, FLsetupId: int):
         """
         Create a new Federated Dataset in the database.
@@ -42,7 +45,7 @@ class FederatedDataset:
         if fedDataId :
             self.id = fedDataId
         else:
-            my_eng.execute(text(INSERT_FLDATASET_QUERY), query_params)
+            self.eng.execute(text(INSERT_FLDATASET_QUERY), query_params)
             self.id = get_feddataset_id_from_name(self.name)
 
 
@@ -54,4 +57,4 @@ class FederatedDataset:
         :param FedId: The Federated Dataset ID.
         """
         query_params = {"FLpipeId": FLpipeId, "FedId": FedId}
-        my_eng.execute(text(UPDATE_FLDATASET_QUERY), **query_params)
+        self.eng.execute(text(UPDATE_FLDATASET_QUERY), **query_params)

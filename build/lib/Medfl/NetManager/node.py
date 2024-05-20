@@ -1,10 +1,9 @@
 import pandas as pd
 
-from scripts.base import *
 from .net_helper import *
 from .net_manager_queries import *
 from Medfl.LearningManager.utils import params
-
+from Medfl.NetManager.database_connector import DatabaseManager
 
 class Node:
     """
@@ -17,7 +16,7 @@ class Node:
     """
 
     def __init__(
-        self, name: str, train: int, test_fraction: float = 0.2, engine=my_eng
+        self, name: str, train: int, test_fraction: float = 0.2, engine=None
     ):
         """
         Initialize a Node instance.
@@ -30,7 +29,11 @@ class Node:
         self.name = name
         self.train = train
         self.test_fraction = 1.0 if self.train == 0 else test_fraction
-        self.engine = engine
+       
+
+        db_manager = DatabaseManager() ; 
+        db_manager.connect() ; 
+        self.engine = db_manager.get_connection()
 
     def validate(self):
         """Validate name, train, test_fraction"""
@@ -71,10 +74,12 @@ class Node:
             print("MasterDataset doesn't exist")
         else:
             columns = data_df.columns.tolist()
+            
             # get master_dataset columns
-            master_table_columns = pd.read_sql(
-                text(SELECT_MASTER_COLUMNS_QUERY), self.engine
-            ).columns.tolist()
+            result_proxy = self.engine.execute(SELECT_MASTER_COLUMNS_QUERY)
+            master_table_columns = result_proxy.keys()
+
+
             assert [x == y for x, y in zip(master_table_columns, columns)]
 
     def update_node(self):
@@ -91,21 +96,13 @@ class Node:
         """
         NodeId = get_nodeid_from_name(self.name)
         if column_name is not None:
-            
-            node_dataset = pd.read_sql(
-                text(
-                    SELECT_DATASET_BY_COLUMN_QUERY.format(
-                        column_name, self.name
-                    )
-                ),
-                self.engine,
-            )
-             
+            query = text(SELECT_DATASET_BY_COLUMN_QUERY.format(column_name, self.name))
         else:
-            node_dataset = pd.read_sql(
-                text(SELECT_DATASET_BY_NODE_ID_QUERY.format(NodeId)),
-                self.engine,
-            )
+            query = text(SELECT_DATASET_BY_NODE_ID_QUERY.format(NodeId))
+
+        result_proxy = self.engine.execute(query)
+        node_dataset = pd.DataFrame(result_proxy.fetchall(), columns=result_proxy.keys())
+
         return node_dataset
 
     def upload_dataset(self, dataset_name: str, path_to_csv: str = params['path_to_test_csv']):

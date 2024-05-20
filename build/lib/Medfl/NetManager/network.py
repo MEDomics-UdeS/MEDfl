@@ -12,6 +12,8 @@ from .node import Node
 import pandas as pd
 from Medfl.LearningManager.utils import params
 
+from sqlalchemy import text
+
 
 class Network:
     """
@@ -33,6 +35,10 @@ class Network:
         self.mtable_exists = int(master_table_exists())
         self.validate()
 
+        db_manager = DatabaseManager() ; 
+        db_manager.connect() ; 
+        self.eng = db_manager.get_connection()
+
     def validate(self):
         """Validate name"""
 
@@ -41,7 +47,7 @@ class Network:
 
     def create_network(self):
         """Create a new network in the database."""
-        my_eng.execute(text(INSERT_NETWORK_QUERY.format(name=self.name)))
+        self.eng.execute(text(INSERT_NETWORK_QUERY.format(name=self.name)))
         self.id = get_netid_from_name(self.name)
 
     def use_network(self, network_name: str):
@@ -56,7 +62,7 @@ class Network:
         """
         network = pd.read_sql(
             text(GET_NETWORK_QUERY.format(name=network_name)),
-            my_eng,
+            self.eng,
         )
 
         if (network.NetId[0]):
@@ -70,7 +76,7 @@ class Network:
 
     def delete_network(self):
         """Delete the network from the database."""
-        my_eng.execute(text(DELETE_NETWORK_QUERY.format(name=self.name)))
+        self.eng.execute(text(DELETE_NETWORK_QUERY.format(name=self.name)))
 
     def update_network(self, FLsetupId: int):
         """Update the network's FLsetupId in the database.
@@ -78,7 +84,7 @@ class Network:
         Parameters:
             FLsetupId (int): The FLsetupId to update.
         """
-        my_eng.execute(
+        self.eng.execute(
             text(UPDATE_NETWORK_QUERY.format(FLsetupId=FLsetupId, id=self.id))
         )
 
@@ -100,9 +106,10 @@ class Network:
             DataFrame: A DataFrame containing information about all nodes in the network.
         
         """
-        return pd.read_sql(
-            text(LIST_ALL_NODES_QUERY.format(name=self.name)), my_eng
-        )
+        query = text(LIST_ALL_NODES_QUERY.format(name=self.name))
+        result_proxy = self.eng.execute(query)
+        result_df = pd.DataFrame(result_proxy.fetchall(), columns=result_proxy.keys())
+        return result_df
 
     def create_master_dataset(self, path_to_csv: str = params['path_to_master_csv']):
         """
@@ -127,10 +134,10 @@ class Network:
                     for col in columns
                 ]
             )
-            my_eng.execute(
+            self.eng.execute(
                 text(CREATE_MASTER_DATASET_TABLE_QUERY.format(columns_str))
             )
-            my_eng.execute(text(CREATE_DATASETS_TABLE_QUERY.format(columns_str)))
+            self.eng.execute(text(CREATE_DATASETS_TABLE_QUERY.format(columns_str)))
 
             # Get the list of columns in the DataFrame
 
@@ -145,7 +152,7 @@ class Network:
                     f"{is_str(data_df, row, x)}," for x in columns
                 )
                 query = query_1[:-1] + ")" + query_2[:-1] + ")"
-                my_eng.execute(text(query))
+                self.eng.execute(text(query))
 
         # Set mtable_exists flag to True
         self.mtable_exists = 1
@@ -157,4 +164,11 @@ class Network:
             DataFrame: A DataFrame containing information about all networks in the database.
         
         """
-        return pd.read_sql(text("SELECT * FROM Networks"), my_eng)
+        db_manager = DatabaseManager() ; 
+        db_manager.connect() ; 
+        my_eng = db_manager.get_connection() ;
+
+        result_proxy = my_eng.execute("SELECT * FROM Networks")
+        result = result_proxy.fetchall()
+        return result
+

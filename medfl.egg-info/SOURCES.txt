@@ -17,6 +17,12 @@ MEDfl.egg-info/SOURCES.txt
 MEDfl.egg-info/dependency_links.txt
 MEDfl.egg-info/requires.txt
 MEDfl.egg-info/top_level.txt
+Medfl/__init__.py
+Medfl.egg-info/PKG-INFO
+Medfl.egg-info/SOURCES.txt
+Medfl.egg-info/dependency_links.txt
+Medfl.egg-info/requires.txt
+Medfl.egg-info/top_level.txt
 Medfl/LearningManager/__init__.py
 Medfl/LearningManager/client.py
 Medfl/LearningManager/dynamicModal.py
@@ -50,6 +56,7 @@ Medfl/LearningManager/__pycache__/strategy.cpython-39.pyc
 Medfl/LearningManager/__pycache__/utils.cpython-38.pyc
 Medfl/LearningManager/__pycache__/utils.cpython-39.pyc
 Medfl/NetManager/__init__.py
+Medfl/NetManager/database_connector.py
 Medfl/NetManager/dataset.py
 Medfl/NetManager/flsetup.py
 Medfl/NetManager/net_helper.py
@@ -388,8 +395,8 @@ notebooks/tutorial/newplot2.png
 notebooks/tutorial/newplot4.png
 scripts/__init__.py
 scripts/base.py
-scripts/config.ini
 scripts/create_db.py
+scripts/db_config.ini
 scripts/setup_mysql.sh
 scripts/__pycache__/__init__.cpython-38.pyc
 scripts/__pycache__/__init__.cpython-39.pyc

@@ -9,7 +9,7 @@ import os
 current_directory = os.path.dirname(os.path.abspath(__file__))
 
 # Load configuration from the config file
-config_file_path = os.path.join(current_directory, 'config.ini')
+config_file_path = os.path.join(current_directory, 'db_config.ini')
 
 config = ConfigParser()
 config.read(config_file_path)

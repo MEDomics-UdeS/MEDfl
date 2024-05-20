@@ -115,10 +115,11 @@ class FlowerServer:
             f"cuda:{int(cid) % 4}" if torch.cuda.is_available() else "cpu"
         )
         client_model = copy.deepcopy(self.global_model)
-        
+      
         trainloader = self.fed_dataset.trainloaders[int(cid)]
         valloader = self.fed_dataset.valloaders[int(cid)]
         # this helps in making plots
+        
         client = FlowerClient(
             cid, client_model, trainloader, valloader, self.diff_priv
         )
@@ -165,7 +166,8 @@ class FlowerServer:
         ray_init_args = {"include_dashboard": False
                          , "object_store_memory": 78643200
                         }
-
+        self.fed_dataset.eng = None
+        
         history = fl.simulation.start_simulation(
             client_fn=self.client_fn,
             num_clients=self.num_clients,

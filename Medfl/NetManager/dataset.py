@@ -1,11 +1,10 @@
 import pandas as pd
 from sqlalchemy import text
 
-from scripts.base import my_eng
 from .net_helper import *
 from .net_manager_queries import (DELETE_DATASET, INSERT_DATASET,
                                   SELECT_ALL_DATASET_NAMES)
-
+from Medfl.NetManager.database_connector import DatabaseManager
 
 class DataSet:
     def __init__(self, name: str, path: str, engine=None):
@@ -19,7 +18,9 @@ class DataSet:
         """
         self.name = name
         self.path = path
-        self.engine = engine if engine is not None else my_eng
+        db_manager = DatabaseManager()
+        db_manager.connect()
+        self.engine = db_manager.get_connection()
 
     def validate(self):
         """

@@ -38,7 +38,7 @@ cd MEDfl
 pip install -e .
 ```
 ### MySQL DB configuration
-MEDfl requires a MySQL DB connection, and this is in order to allow users to work with their own tabular datasets,  we have created a bash script to install and configure A MySQL DB with phpmyadmin monitoring system, run the following command then change your credential on the MEDfl/scripts/base.py and MEDfl/scripts/config.ini files
+MEDfl requires a MySQL DB connection, and this is in order to allow users to work with their own tabular datasets,  we have created a bash script to install and configure A MySQL DB with phpmyadmin monitoring system, run the following command then change your credential on the MEDfl/scripts/base.py and MEDfl/scripts/db_config.ini files
 ```
 sudo bash MEDfl/scripts/setup_mysql.sh
 ```
