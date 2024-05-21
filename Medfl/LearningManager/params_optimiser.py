@@ -12,10 +12,10 @@ from sklearn.base import BaseEstimator
 from sklearn.metrics import make_scorer, precision_score, recall_score, accuracy_score, f1_score,roc_auc_score, balanced_accuracy_score
 import optuna
 
-from Medfl.LearningManager.model import Model
-from Medfl.LearningManager.strategy import Strategy
-from Medfl.LearningManager.server import FlowerServer
-from Medfl.LearningManager.flpipeline import FLpipeline
+from MEDfl.LearningManager.model import Model
+from MEDfl.LearningManager.strategy import Strategy
+from MEDfl.LearningManager.server import FlowerServer
+from MEDfl.LearningManager.flpipeline import FLpipeline
 
 class BinaryClassifier(nn.Module):
     def __init__(self, input_size, num_layers, layer_size):

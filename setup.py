@@ -14,7 +14,7 @@ with open('requirements.txt') as f:
 
 setup(
     name="MEDfl",
-    version="0.1.25",
+    version="0.1.26",
     author="MEDomics consortium",
     author_email="medomics.info@gmail.com",
     description="Python Open-source package for simulating federated learning and differential privacy",
@@ -44,6 +44,6 @@ setup(
         # include the create db script
         'scripts': ['create_db.py'],
         # Include the params.yaml file
-        'Medfl': ['LearningManager/params.yaml'],
+        'MEDfl': ['LearningManager/params.yaml'],
     }
 )

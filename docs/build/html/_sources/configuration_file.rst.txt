@@ -31,7 +31,7 @@ Also, in the file ``MEDfl/scripts/create_db.py``:
 
 Learning Parameters
 -------------------
-In the file ``MEDfl/Medfl/LearningManager/params.yaml``, you can modify the parameters for creating your model.
+In the file ``MEDfl/MEDfl/LearningManager/params.yaml``, you can modify the parameters for creating your model.
 
 .. code-block:: yaml
 
@@ -50,7 +50,7 @@ In the file ``MEDfl/Medfl/LearningManager/params.yaml``, you can modify the para
 
 DataSets
 --------
-In the file ``/MEDfl/Medfl/LearningManager/params.yaml``, you can specify the path to the CSV files of the dataset you want to use.
+In the file ``/MEDfl/MEDfl/LearningManager/params.yaml``, you can specify the path to the CSV files of the dataset you want to use.
 
 .. code-block:: yaml
 

@@ -72,7 +72,7 @@ class FlowerClient(fl.client.NumPyClient):
             raise TypeError("cid argument must be a string")
 
         if not isinstance(self.local_model, Model):
-            raise TypeError("local_model argument must be a Medfl.LearningManager.model.Model")
+            raise TypeError("local_model argument must be a MEDfl.LearningManager.model.Model")
 
         if not isinstance(self.trainloader, DataLoader):
             raise TypeError("trainloader argument must be a torch.utils.data.dataloader")

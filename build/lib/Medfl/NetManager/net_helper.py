@@ -8,7 +8,7 @@ import pandas as pd
 from torch.utils.data import TensorDataset
 import numpy as np
 
-from Medfl.NetManager.database_connector import DatabaseManager
+from MEDfl.NetManager.database_connector import DatabaseManager
 
 
 def is_str(data_df, row, x):

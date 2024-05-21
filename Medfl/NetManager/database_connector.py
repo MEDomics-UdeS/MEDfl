@@ -7,7 +7,7 @@ import subprocess
 class DatabaseManager:
     def __init__(self):
 
-        from Medfl.LearningManager.utils import load_db_config
+        from MEDfl.LearningManager.utils import load_db_config
         db_config = load_db_config()
         if db_config:
             self.config = db_config

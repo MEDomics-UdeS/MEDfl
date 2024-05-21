@@ -1,4 +1,4 @@
-# # Medfl/NetworkManager/__init__.py
+# # MEDfl/NetworkManager/__init__.py
 
 # # Import modules from this package
 # from .dataset import *

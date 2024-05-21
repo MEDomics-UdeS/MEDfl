@@ -4,7 +4,7 @@ from sqlalchemy import text
 from .net_helper import *
 from .net_manager_queries import (DELETE_DATASET, INSERT_DATASET,
                                   SELECT_ALL_DATASET_NAMES)
-from Medfl.NetManager.database_connector import DatabaseManager
+from MEDfl.NetManager.database_connector import DatabaseManager
 
 class DataSet:
     def __init__(self, name: str, path: str, engine=None):

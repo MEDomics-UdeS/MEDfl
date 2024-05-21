@@ -9,12 +9,12 @@ from sqlalchemy import text
 from torch.utils.data import DataLoader, TensorDataset
 import torch 
 
-from Medfl.LearningManager.server import FlowerServer
-from Medfl.LearningManager.utils import params, test
-from Medfl.NetManager.net_helper import get_flpipeline_from_name
-from Medfl.NetManager.net_manager_queries import (CREATE_FLPIPELINE_QUERY,
+from MEDfl.LearningManager.server import FlowerServer
+from MEDfl.LearningManager.utils import params, test
+from MEDfl.NetManager.net_helper import get_flpipeline_from_name
+from MEDfl.NetManager.net_manager_queries import (CREATE_FLPIPELINE_QUERY,
                                                   DELETE_FLPIPELINE_QUERY , CREATE_TEST_RESULTS_QUERY)
-from Medfl.NetManager.database_connector import DatabaseManager
+from MEDfl.NetManager.database_connector import DatabaseManager
 
 def create_query(name, description, creation_date, result):
     query = text(

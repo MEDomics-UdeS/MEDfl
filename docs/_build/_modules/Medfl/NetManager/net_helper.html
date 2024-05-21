@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Medfl.NetManager.net_helper &mdash; MEDfl 0.1.0 documentation</title>
+  <title>MEDfl.NetManager.net_helper &mdash; MEDfl 0.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="../../../_static/custom.css" />
@@ -50,7 +50,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">Medfl</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">MEDfl</a></li>
 </ul>
 
         </div>
@@ -68,7 +68,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
-      <li class="breadcrumb-item active">Medfl.NetManager.net_helper</li>
+      <li class="breadcrumb-item active">MEDfl.NetManager.net_helper</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -77,7 +77,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>Source code for Medfl.NetManager.net_helper</h1><div class="highlight"><pre>
+  <h1>Source code for MEDfl.NetManager.net_helper</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="kn">import</span> <span class="n">LabelEncoder</span>
 <span class="kn">from</span> <span class="nn">sklearn.impute</span> <span class="kn">import</span> <span class="n">SimpleImputer</span>
 
@@ -93,7 +93,7 @@
 
 
 <div class="viewcode-block" id="is_str">
-<a class="viewcode-back" href="../../../Medfl.NetManager.html#Medfl.NetManager.net_helper.is_str">[docs]</a>
+<a class="viewcode-back" href="../../../MEDfl.NetManager.html#MEDfl.NetManager.net_helper.is_str">[docs]</a>
 <span class="k">def</span> <span class="nf">is_str</span><span class="p">(</span><span class="n">data_df</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Check if a column in a DataFrame is of type &#39;object&#39; and convert the value accordingly.</span>
@@ -115,7 +115,7 @@
 
 
 <div class="viewcode-block" id="process_eicu">
-<a class="viewcode-back" href="../../../Medfl.NetManager.html#Medfl.NetManager.net_helper.process_eicu">[docs]</a>
+<a class="viewcode-back" href="../../../MEDfl.NetManager.html#MEDfl.NetManager.net_helper.process_eicu">[docs]</a>
 <span class="k">def</span> <span class="nf">process_eicu</span><span class="p">(</span><span class="n">data_df</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Process eICU data by filling missing values with mean and replacing NaNs with &#39;Unknown&#39;.</span>
@@ -147,7 +147,7 @@
 
 <span class="c1"># remove indiserd columns after reading from the DB</span>
 <div class="viewcode-block" id="process_data_after_reading">
-<a class="viewcode-back" href="../../../Medfl.NetManager.html#Medfl.NetManager.net_helper.process_data_after_reading">[docs]</a>
+<a class="viewcode-back" href="../../../MEDfl.NetManager.html#MEDfl.NetManager.net_helper.process_data_after_reading">[docs]</a>
 <span class="k">def</span> <span class="nf">process_data_after_reading</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">fill_strategy</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span>  <span class="n">fit_encode</span><span class="o">=</span><span class="p">[],</span> <span class="n">to_drop</span><span class="o">=</span><span class="p">[]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Process data after reading from the database, including encoding, dropping columns, and creating a PyTorch TensorDataset.</span>
@@ -210,7 +210,7 @@
 
 
 <div class="viewcode-block" id="get_nodeid_from_name">
-<a class="viewcode-back" href="../../../Medfl.NetManager.html#Medfl.NetManager.net_helper.get_nodeid_from_name">[docs]</a>
+<a class="viewcode-back" href="../../../MEDfl.NetManager.html#MEDfl.NetManager.net_helper.get_nodeid_from_name">[docs]</a>
 <span class="k">def</span> <span class="nf">get_nodeid_from_name</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get the NodeId from the Nodes table based on the NodeName.</span>
@@ -232,7 +232,7 @@
 
 
 <div class="viewcode-block" id="get_netid_from_name">
-<a class="viewcode-back" href="../../../Medfl.NetManager.html#Medfl.NetManager.net_helper.get_netid_from_name">[docs]</a>
+<a class="viewcode-back" href="../../../MEDfl.NetManager.html#MEDfl.NetManager.net_helper.get_netid_from_name">[docs]</a>
 <span class="k">def</span> <span class="nf">get_netid_from_name</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get the Network Id from the Networks table based on the NetName.</span>
@@ -257,7 +257,7 @@
 
 
 <div class="viewcode-block" id="get_flsetupid_from_name">
-<a class="viewcode-back" href="../../../Medfl.NetManager.html#Medfl.NetManager.net_helper.get_flsetupid_from_name">[docs]</a>
+<a class="viewcode-back" href="../../../MEDfl.NetManager.html#MEDfl.NetManager.net_helper.get_flsetupid_from_name">[docs]</a>
 <span class="k">def</span> <span class="nf">get_flsetupid_from_name</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get the FLsetupId from the FLsetup table based on the FL setup name.</span>
@@ -282,7 +282,7 @@
 
 
 <div class="viewcode-block" id="get_flpipeline_from_name">
-<a class="viewcode-back" href="../../../Medfl.NetManager.html#Medfl.NetManager.net_helper.get_flpipeline_from_name">[docs]</a>
+<a class="viewcode-back" href="../../../MEDfl.NetManager.html#MEDfl.NetManager.net_helper.get_flpipeline_from_name">[docs]</a>
 <span class="k">def</span> <span class="nf">get_flpipeline_from_name</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get the FLpipeline Id from the FLpipeline table based on the FL pipeline name.</span>
@@ -307,7 +307,7 @@
 
 
 <div class="viewcode-block" id="get_feddataset_id_from_name">
-<a class="viewcode-back" href="../../../Medfl.NetManager.html#Medfl.NetManager.net_helper.get_feddataset_id_from_name">[docs]</a>
+<a class="viewcode-back" href="../../../MEDfl.NetManager.html#MEDfl.NetManager.net_helper.get_feddataset_id_from_name">[docs]</a>
 <span class="k">def</span> <span class="nf">get_feddataset_id_from_name</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get the Federated dataset Id from the FedDatasets table based on the federated dataset name.</span>
@@ -332,7 +332,7 @@
 
 
 <div class="viewcode-block" id="master_table_exists">
-<a class="viewcode-back" href="../../../Medfl.NetManager.html#Medfl.NetManager.net_helper.master_table_exists">[docs]</a>
+<a class="viewcode-back" href="../../../MEDfl.NetManager.html#MEDfl.NetManager.net_helper.master_table_exists">[docs]</a>
 <span class="k">def</span> <span class="nf">master_table_exists</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Check if the MasterDataset table exists in the database.</span>

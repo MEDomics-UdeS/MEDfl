@@ -1,6 +1,6 @@
-# src/Medfl/NetManager/network.py
+# src/MEDfl/NetManager/network.py
 
-from Medfl.LearningManager.utils import *
+from MEDfl.LearningManager.utils import *
 
 from .net_helper import *
 from .net_manager_queries import (CREATE_MASTER_DATASET_TABLE_QUERY,
@@ -10,7 +10,7 @@ from .net_manager_queries import (CREATE_MASTER_DATASET_TABLE_QUERY,
                                   UPDATE_NETWORK_QUERY, GET_NETWORK_QUERY)
 from .node import Node
 import pandas as pd
-from Medfl.LearningManager.utils import params
+from MEDfl.LearningManager.utils import params
 
 from sqlalchemy import text
 

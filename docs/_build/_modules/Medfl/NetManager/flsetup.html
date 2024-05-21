@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Medfl.NetManager.flsetup &mdash; MEDfl 0.1.0 documentation</title>
+  <title>MEDfl.NetManager.flsetup &mdash; MEDfl 0.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="../../../_static/custom.css" />
@@ -50,7 +50,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">Medfl</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">MEDfl</a></li>
 </ul>
 
         </div>
@@ -68,7 +68,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
-      <li class="breadcrumb-item active">Medfl.NetManager.flsetup</li>
+      <li class="breadcrumb-item active">MEDfl.NetManager.flsetup</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -77,13 +77,13 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>Source code for Medfl.NetManager.flsetup</h1><div class="highlight"><pre>
+  <h1>Source code for MEDfl.NetManager.flsetup</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
 
 
 <span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">random_split</span><span class="p">,</span> <span class="n">DataLoader</span><span class="p">,</span> <span class="n">Dataset</span>
 
-<span class="kn">from</span> <span class="nn">Medfl.LearningManager.federated_dataset</span> <span class="kn">import</span> <span class="n">FederatedDataset</span>
+<span class="kn">from</span> <span class="nn">MEDfl.LearningManager.federated_dataset</span> <span class="kn">import</span> <span class="n">FederatedDataset</span>
 <span class="kn">from</span> <span class="nn">.net_helper</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">.net_manager_queries</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># Import the sql_queries module</span>
 <span class="kn">from</span> <span class="nn">.network</span> <span class="kn">import</span> <span class="n">Network</span>
@@ -92,10 +92,10 @@
 
 
 <div class="viewcode-block" id="FLsetup">
-<a class="viewcode-back" href="../../../Medfl.NetManager.html#Medfl.NetManager.flsetup.FLsetup">[docs]</a>
+<a class="viewcode-back" href="../../../MEDfl.NetManager.html#MEDfl.NetManager.flsetup.FLsetup">[docs]</a>
 <span class="k">class</span> <span class="nc">FLsetup</span><span class="p">:</span>
 <div class="viewcode-block" id="FLsetup.__init__">
-<a class="viewcode-back" href="../../../Medfl.NetManager.html#Medfl.NetManager.flsetup.FLsetup.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../MEDfl.NetManager.html#MEDfl.NetManager.flsetup.FLsetup.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">description</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">network</span><span class="p">:</span> <span class="n">Network</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize a Federated Learning (FL) setup.</span>
 
@@ -114,7 +114,7 @@
 
 
 <div class="viewcode-block" id="FLsetup.validate">
-<a class="viewcode-back" href="../../../Medfl.NetManager.html#Medfl.NetManager.flsetup.FLsetup.validate">[docs]</a>
+<a class="viewcode-back" href="../../../MEDfl.NetManager.html#MEDfl.NetManager.flsetup.FLsetup.validate">[docs]</a>
     <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate name, description, and network.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
@@ -125,12 +125,12 @@
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">network</span><span class="p">,</span> <span class="n">Network</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
-                <span class="s2">&quot;network argument must be a Medfl.NetManager.Network &quot;</span>
+                <span class="s2">&quot;network argument must be a MEDfl.NetManager.Network &quot;</span>
             <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="FLsetup.create">
-<a class="viewcode-back" href="../../../Medfl.NetManager.html#Medfl.NetManager.flsetup.FLsetup.create">[docs]</a>
+<a class="viewcode-back" href="../../../MEDfl.NetManager.html#MEDfl.NetManager.flsetup.FLsetup.create">[docs]</a>
     <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create an FL setup.&quot;&quot;&quot;</span>
         <span class="n">creation_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S&quot;</span><span class="p">)</span>
@@ -149,7 +149,7 @@
 
 
 <div class="viewcode-block" id="FLsetup.delete">
-<a class="viewcode-back" href="../../../Medfl.NetManager.html#Medfl.NetManager.flsetup.FLsetup.delete">[docs]</a>
+<a class="viewcode-back" href="../../../MEDfl.NetManager.html#MEDfl.NetManager.flsetup.FLsetup.delete">[docs]</a>
     <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Delete the FL setup.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fed_dataset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -158,7 +158,7 @@
 
 
 <div class="viewcode-block" id="FLsetup.read_setup">
-<a class="viewcode-back" href="../../../Medfl.NetManager.html#Medfl.NetManager.flsetup.FLsetup.read_setup">[docs]</a>
+<a class="viewcode-back" href="../../../MEDfl.NetManager.html#MEDfl.NetManager.flsetup.FLsetup.read_setup">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">read_setup</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">FLsetupId</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Read the FL setup by FLsetupId.</span>
@@ -190,7 +190,7 @@
 
 
 <div class="viewcode-block" id="FLsetup.list_allsetups">
-<a class="viewcode-back" href="../../../Medfl.NetManager.html#Medfl.NetManager.flsetup.FLsetup.list_allsetups">[docs]</a>
+<a class="viewcode-back" href="../../../MEDfl.NetManager.html#MEDfl.NetManager.flsetup.FLsetup.list_allsetups">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">list_allsetups</span><span class="p">():</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;List all the FL setups.</span>
@@ -203,7 +203,7 @@
 
 
 <div class="viewcode-block" id="FLsetup.create_nodes_from_master_dataset">
-<a class="viewcode-back" href="../../../Medfl.NetManager.html#Medfl.NetManager.flsetup.FLsetup.create_nodes_from_master_dataset">[docs]</a>
+<a class="viewcode-back" href="../../../MEDfl.NetManager.html#MEDfl.NetManager.flsetup.FLsetup.create_nodes_from_master_dataset">[docs]</a>
     <span class="k">def</span> <span class="nf">create_nodes_from_master_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create nodes from the master dataset.</span>
 
@@ -257,7 +257,7 @@
 
 
 <div class="viewcode-block" id="FLsetup.create_dataloader_from_node">
-<a class="viewcode-back" href="../../../Medfl.NetManager.html#Medfl.NetManager.flsetup.FLsetup.create_dataloader_from_node">[docs]</a>
+<a class="viewcode-back" href="../../../MEDfl.NetManager.html#MEDfl.NetManager.flsetup.FLsetup.create_dataloader_from_node">[docs]</a>
     <span class="k">def</span> <span class="nf">create_dataloader_from_node</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">,</span>
@@ -302,7 +302,7 @@
 
 
 <div class="viewcode-block" id="FLsetup.create_federated_dataset">
-<a class="viewcode-back" href="../../../Medfl.NetManager.html#Medfl.NetManager.flsetup.FLsetup.create_federated_dataset">[docs]</a>
+<a class="viewcode-back" href="../../../MEDfl.NetManager.html#MEDfl.NetManager.flsetup.FLsetup.create_federated_dataset">[docs]</a>
     <span class="k">def</span> <span class="nf">create_federated_dataset</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">fill_strategy</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span>  <span class="n">fit_encode</span><span class="o">=</span><span class="p">[],</span> <span class="n">to_drop</span><span class="o">=</span><span class="p">[],</span> <span class="n">val_frac</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">test_frac</span><span class="o">=</span><span class="mf">0.2</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FederatedDataset</span><span class="p">:</span>
@@ -399,7 +399,7 @@
 
 
 <div class="viewcode-block" id="FLsetup.get_flDataSet">
-<a class="viewcode-back" href="../../../Medfl.NetManager.html#Medfl.NetManager.flsetup.FLsetup.get_flDataSet">[docs]</a>
+<a class="viewcode-back" href="../../../MEDfl.NetManager.html#MEDfl.NetManager.flsetup.FLsetup.get_flDataSet">[docs]</a>
     <span class="k">def</span> <span class="nf">get_flDataSet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Retrieve the federated dataset associated with the FL setup using the FL setup&#39;s name.</span>

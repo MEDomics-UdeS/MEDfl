@@ -1,77 +1,77 @@
-Medfl.LearningManager package
+MEDfl.LearningManager package
 =============================
 
 Submodules
 ----------
 
-Medfl.LearningManager.client module
+MEDfl.LearningManager.client module
 -----------------------------------
 
-.. automodule:: Medfl.LearningManager.client
+.. automodule:: MEDfl.LearningManager.client
    :members:
    :undoc-members:
    :show-inheritance:
 
-Medfl.LearningManager.dynamicModal module
+MEDfl.LearningManager.dynamicModal module
 -----------------------------------------
 
-.. automodule:: Medfl.LearningManager.dynamicModal
+.. automodule:: MEDfl.LearningManager.dynamicModal
    :members:
    :undoc-members:
    :show-inheritance:
 
-Medfl.LearningManager.federated\_dataset module
+MEDfl.LearningManager.federated\_dataset module
 -----------------------------------------------
 
-.. automodule:: Medfl.LearningManager.federated_dataset
+.. automodule:: MEDfl.LearningManager.federated_dataset
    :members:
    :undoc-members:
    :show-inheritance:
 
-Medfl.LearningManager.flpipeline module
+MEDfl.LearningManager.flpipeline module
 ---------------------------------------
 
-.. automodule:: Medfl.LearningManager.flpipeline
+.. automodule:: MEDfl.LearningManager.flpipeline
    :members:
    :undoc-members:
    :show-inheritance:
 
-Medfl.LearningManager.model module
+MEDfl.LearningManager.model module
 ----------------------------------
 
-.. automodule:: Medfl.LearningManager.model
+.. automodule:: MEDfl.LearningManager.model
    :members:
    :undoc-members:
    :show-inheritance:
 
-Medfl.LearningManager.plot module
+MEDfl.LearningManager.plot module
 ---------------------------------
 
-.. automodule:: Medfl.LearningManager.plot
+.. automodule:: MEDfl.LearningManager.plot
    :members:
    :undoc-members:
    :show-inheritance:
 
-Medfl.LearningManager.server module
+MEDfl.LearningManager.server module
 -----------------------------------
 
-.. automodule:: Medfl.LearningManager.server
+.. automodule:: MEDfl.LearningManager.server
    :members:
    :undoc-members:
    :show-inheritance:
 
-Medfl.LearningManager.strategy module
+MEDfl.LearningManager.strategy module
 -------------------------------------
 
-.. automodule:: Medfl.LearningManager.strategy
+.. automodule:: MEDfl.LearningManager.strategy
    :members:
    :undoc-members:
    :show-inheritance:
 
-Medfl.LearningManager.utils module
+MEDfl.LearningManager.utils module
 ----------------------------------
 
-.. automodule:: Medfl.LearningManager.utils
+.. automodule:: MEDfl.LearningManager.utils
    :members:
    :undoc-members:
    :show-inheritance:
@@ -79,7 +79,7 @@ Medfl.LearningManager.utils module
 Module contents
 ---------------
 
-.. automodule:: Medfl.LearningManager  
+.. automodule:: MEDfl.LearningManager  
    :members:
    :undoc-members:
    :show-inheritance:

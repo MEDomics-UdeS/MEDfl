@@ -7,7 +7,7 @@ from sklearn.metrics import *
 from yaml.loader import SafeLoader
 
 
-from Medfl.NetManager.database_connector import DatabaseManager
+from MEDfl.NetManager.database_connector import DatabaseManager
 
 # from scripts.base import *
 import json
@@ -44,7 +44,7 @@ DEFAULT_CONFIG_PATH = 'db_config.ini'
 
 
 def load_db_config():
-    config = os.environ.get('MEDFL_DB_CONFIG')
+    config = os.environ.get('MEDfl_DB_CONFIG')
 
     if config:
         return ast.literal_eval(config)
@@ -58,7 +58,7 @@ def set_db_config(config_path):
     config = configparser.ConfigParser()
     config.read(config_path)
     if (config['mysql']):
-        os.environ['MEDFL_DB_CONFIG'] = str(dict(config['mysql']))
+        os.environ['MEDfl_DB_CONFIG'] = str(dict(config['mysql']))
     else:
         raise ValueError(f"mysql key not found in file '{config_path}'")
 

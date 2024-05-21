@@ -3,14 +3,14 @@ from datetime import datetime
 
 from torch.utils.data import random_split, DataLoader, Dataset
 
-from Medfl.LearningManager.federated_dataset import FederatedDataset
+from MEDfl.LearningManager.federated_dataset import FederatedDataset
 from .net_helper import *
 from .net_manager_queries import *  # Import the sql_queries module
 from .network import Network
 
 from .node import Node
 
-from Medfl.NetManager.database_connector import DatabaseManager
+from MEDfl.NetManager.database_connector import DatabaseManager
 
 
 class FLsetup:
@@ -46,7 +46,7 @@ class FLsetup:
 
         if not isinstance(self.network, Network):
             raise TypeError(
-                "network argument must be a Medfl.NetManager.Network "
+                "network argument must be a MEDfl.NetManager.Network "
             )
 
     def create(self):

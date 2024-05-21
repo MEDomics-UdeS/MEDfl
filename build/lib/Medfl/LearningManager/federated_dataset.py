@@ -1,6 +1,6 @@
-from Medfl.NetManager.net_helper import *
-from Medfl.NetManager.net_manager_queries import *
-from Medfl.NetManager.database_connector import DatabaseManager
+from MEDfl.NetManager.net_helper import *
+from MEDfl.NetManager.net_manager_queries import *
+from MEDfl.NetManager.database_connector import DatabaseManager
 
 class FederatedDataset:
     def __init__(

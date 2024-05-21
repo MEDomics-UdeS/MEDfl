@@ -2,8 +2,8 @@ import pandas as pd
 
 from .net_helper import *
 from .net_manager_queries import *
-from Medfl.LearningManager.utils import params
-from Medfl.NetManager.database_connector import DatabaseManager
+from MEDfl.LearningManager.utils import params
+from MEDfl.NetManager.database_connector import DatabaseManager
 
 class Node:
     """
