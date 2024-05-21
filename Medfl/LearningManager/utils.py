@@ -110,7 +110,7 @@ def test(model, test_loader, device=torch.device("cpu")):
 column_map = {"object": "VARCHAR(255)", "int64": "INT", "float64": "FLOAT"}
 
 
-def empty_db():
+def empty_db(my_eng=my_eng):
     """
     Empty the database by deleting records from multiple tables and resetting auto-increment counters.
 
