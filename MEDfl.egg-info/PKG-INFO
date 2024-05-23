@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: MEDfl
-Version: 0.1.0
+Version: 0.1.31
 Summary: Python Open-source package for simulating federated learning and differential privacy
 Home-page: https://github.com/HaithemLamri/MEDfl
 Author: MEDomics consortium
@@ -14,7 +14,7 @@ Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
-Requires-Python: >=3.8,<3.10
+Requires-Python: >=3.8,<3.11
 Description-Content-Type: text/markdown
 
 # MEDfl : Federated Learning and Differential Privacy Simulation Tool for Tabular Data
@@ -57,7 +57,7 @@ cd MEDfl
 pip install -e .
 ```
 ### MySQL DB configuration
-MEDfl requires a MySQL DB connection, and this is in order to allow users to work with their own tabular datasets,  we have created a bash script to install and configure A MySQL DB with phpmyadmin monitoring system, run the following command then change your credential on the MEDfl/scripts/base.py and MEDfl/scripts/config.ini files
+MEDfl requires a MySQL DB connection, and this is in order to allow users to work with their own tabular datasets,  we have created a bash script to install and configure A MySQL DB with phpmyadmin monitoring system, run the following command then change your credential on the MEDfl/scripts/base.py and MEDfl/scripts/db_config.ini files
 ```
 sudo bash MEDfl/scripts/setup_mysql.sh
 ```

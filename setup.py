@@ -14,7 +14,7 @@ with open('requirements.txt') as f:
 
 setup(
     name="MEDfl",
-    version="0.1.26",
+    version="0.1.31",
     author="MEDomics consortium",
     author_email="medomics.info@gmail.com",
     description="Python Open-source package for simulating federated learning and differential privacy",
@@ -39,10 +39,8 @@ setup(
     packages=find_packages(exclude=['docs', 'tests']),
     install_requires=requirements,
     package_data={
-        # Include the db_config.ini file from the scripts folder
-        'scripts': ['db_config.ini'],
-        # include the create db script
-        'scripts': ['create_db.py'],
+         # Include the db_config.ini file from the scripts folder
+        '': ['scripts/create_db.py', 'scripts/db_config.ini'],
         # Include the params.yaml file
         'MEDfl': ['LearningManager/params.yaml'],
     }

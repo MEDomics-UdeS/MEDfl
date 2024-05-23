@@ -14,3 +14,6 @@ sphinx-jsonschema==1.19.1
 sphinx-rtd-dark-mode==1.2.4
 plotly==5.19.0
 optuna==3.5.0
+mysql
+mysql-connector-python
+python-dotenv==1.0.1
