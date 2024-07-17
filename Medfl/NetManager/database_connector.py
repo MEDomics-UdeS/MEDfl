@@ -34,7 +34,7 @@ class DatabaseManager:
         current_directory = os.path.dirname(__file__)
 
         # Define the path to the create_db.py script
-        create_db_script_path = os.path.join(current_directory, '..', 'scripts', 'create_db.py')
+        create_db_script_path = os.path.join(current_directory, '..', '..', 'scripts', 'create_db.py')
 
         # Execute the create_db.py script
         subprocess.run(['python', create_db_script_path, path_to_csv], check=True)

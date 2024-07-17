@@ -1,3 +1,2 @@
-MEDfl
 alembic
 scripts
