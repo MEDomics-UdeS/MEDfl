@@ -237,12 +237,18 @@ def master_table_exists():
     Returns:
         bool: True if the table exists, False otherwise.
     """
-    db_manager = DatabaseManager()
-    db_manager.connect()
-    my_eng = db_manager.get_connection()
+    try:
+        db_manager = DatabaseManager()
+        db_manager.connect()
+        my_eng = db_manager.get_connection()
 
+        # SQLite-specific query to check if table exists
+        sql_query = text("SELECT name FROM sqlite_master WHERE type='table' AND name='MasterDataset'")
+        result = my_eng.execute(sql_query)
+        exists = result.fetchone() is not None
+        return exists
 
-    sql_query = text("SELECT EXISTS (SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_NAME = 'MasterDataset')")
-    result = my_eng.execute(sql_query)
-    exists = result.scalar()
-    return exists
+    except Exception as e:
+        print(f"Error checking MasterDataset table existence: {e}")
+        return False
+

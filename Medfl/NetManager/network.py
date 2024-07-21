@@ -1,7 +1,6 @@
 # src/MEDfl/NetManager/network.py
 
 from MEDfl.LearningManager.utils import *
-
 from .net_helper import *
 from .net_manager_queries import (CREATE_MASTER_DATASET_TABLE_QUERY,
                                   CREATE_DATASETS_TABLE_QUERY,
@@ -13,7 +12,7 @@ import pandas as pd
 from MEDfl.LearningManager.utils import params
 
 from sqlalchemy import text
-
+from sqlalchemy.exc import SQLAlchemyError
 
 class Network:
     """
@@ -35,8 +34,8 @@ class Network:
         self.mtable_exists = int(master_table_exists())
         self.validate()
 
-        db_manager = DatabaseManager() ; 
-        db_manager.connect() ; 
+        db_manager = DatabaseManager() 
+        db_manager.connect() 
         self.eng = db_manager.get_connection()
 
     def validate(self):
@@ -47,8 +46,12 @@ class Network:
 
     def create_network(self):
         """Create a new network in the database."""
-        self.eng.execute(text(INSERT_NETWORK_QUERY.format(name=self.name)))
-        self.id = get_netid_from_name(self.name)
+        try:
+            print(self.name)
+            self.eng.execute(text(INSERT_NETWORK_QUERY), {"name": self.name})
+            self.id = self.get_netid_from_name(self.name)
+        except SQLAlchemyError as e:
+            print(f"Error creating network: {e}")
 
     def use_network(self, network_name: str):
         """Use a network in the database.
@@ -58,35 +61,45 @@ class Network:
 
         Returns:
             Network or None: An instance of the Network class if the network exists, else None.
-        
         """
-        network = pd.read_sql(
-            text(GET_NETWORK_QUERY.format(name=network_name)),
-            self.eng,
-        )
-
-        if (network.NetId[0]):
-            self.name = network.NetName[0]
-            self.id = network.NetId[0]
-            self.mtable_exists = int(master_table_exists())
-            self.validate()
-            return self
-        else:
+        try:
+            network = pd.read_sql(
+                text(GET_NETWORK_QUERY),
+                self.eng,
+                params={"name": network_name}
+            )
+            if not network.empty:
+                self.name = network.iloc[0]['NetName']
+                self.id = network.iloc[0]['NetId']
+                self.mtable_exists = int(master_table_exists())
+                self.validate()
+                return self
+            else:
+                return None
+        except SQLAlchemyError as e:
+            print(f"Error using network: {e}")
             return None
 
     def delete_network(self):
         """Delete the network from the database."""
-        self.eng.execute(text(DELETE_NETWORK_QUERY.format(name=self.name)))
+        try:
+            self.eng.execute(text(DELETE_NETWORK_QUERY), {"name": self.name})
+        except SQLAlchemyError as e:
+            print(f"Error deleting network: {e}")
 
     def update_network(self, FLsetupId: int):
         """Update the network's FLsetupId in the database.
-        
+
         Parameters:
             FLsetupId (int): The FLsetupId to update.
         """
-        self.eng.execute(
-            text(UPDATE_NETWORK_QUERY.format(FLsetupId=FLsetupId, id=self.id))
-        )
+        try:
+            self.eng.execute(
+                text(UPDATE_NETWORK_QUERY),
+                {"FLsetupId": FLsetupId, "id": self.id}
+            )
+        except SQLAlchemyError as e:
+            print(f"Error updating network: {e}")
 
     def add_node(self, node: Node):
         """Add a node to the network.
@@ -99,17 +112,17 @@ class Network:
     def list_allnodes(self):
         """List all nodes in the network.
 
-        Parameters:
-            None
-
         Returns:
             DataFrame: A DataFrame containing information about all nodes in the network.
-        
         """
-        query = text(LIST_ALL_NODES_QUERY.format(name=self.name))
-        result_proxy = self.eng.execute(query)
-        result_df = pd.DataFrame(result_proxy.fetchall(), columns=result_proxy.keys())
-        return result_df
+        try:
+            query = text(LIST_ALL_NODES_QUERY)
+            result_proxy = self.eng.execute(query, name=self.name)
+            result_df = pd.DataFrame(result_proxy.fetchall(), columns=result_proxy.keys())
+            return result_df
+        except SQLAlchemyError as e:
+            print(f"Error listing all nodes: {e}")
+            return pd.DataFrame()
 
     def create_master_dataset(self, path_to_csv: str = params['path_to_master_csv']):
         """
@@ -117,58 +130,65 @@ class Network:
 
         :param path_to_csv: Path to the CSV file containing the dataset.
         """
-        print(path_to_csv)
-        # Read the CSV file into a Pandas DataFrame
-        data_df = pd.read_csv(path_to_csv)
+        try:
+            print(path_to_csv)
+            data_df = pd.read_csv(path_to_csv)
 
-        # Process the data if needed (e.g., handle missing values, encode categorical variables)
-        # ...
-
-        # Check if the MasterDataset table exists
-
-        if self.mtable_exists != 1:
-            columns = data_df.columns.tolist()
-            columns_str = ",\n".join(
-                [
-                    f"{col} {column_map[str(data_df[col].dtype)]}"
-                    for col in columns
-                ]
-            )
-            self.eng.execute(
-                text(CREATE_MASTER_DATASET_TABLE_QUERY.format(columns_str))
-            )
-            self.eng.execute(text(CREATE_DATASETS_TABLE_QUERY.format(columns_str)))
-
-            # Get the list of columns in the DataFrame
-
-            data_df = process_eicu(data_df)
-            # Insert the dataset values into the MasterDataset table
-
-            for index, row in data_df.iterrows():
-                query_1 = "INSERT INTO MasterDataset(" + "".join(
-                    f"{x}," for x in columns
+            if self.mtable_exists != 1:
+                columns = data_df.columns.tolist()
+                columns_str = ",\n".join(
+                    [
+                        f"{col} {column_map[str(data_df[col].dtype)]}"
+                        for col in columns
+                    ]
                 )
-                query_2 = f"VALUES (" + "".join(
-                    f"{is_str(data_df, row, x)}," for x in columns
+                self.eng.execute(
+                    text(CREATE_MASTER_DATASET_TABLE_QUERY.format(columns_str))
                 )
-                query = query_1[:-1] + ")" + query_2[:-1] + ")"
-                self.eng.execute(text(query))
+                self.eng.execute(text(CREATE_DATASETS_TABLE_QUERY.format(columns_str)))
 
-        # Set mtable_exists flag to True
-        self.mtable_exists = 1
+                # Process data
+                data_df = process_eicu(data_df)
 
+                # Insert data in batches
+                batch_size = 1000  # Adjust as needed
+                for start_idx in range(0, len(data_df), batch_size):
+                    batch_data = data_df.iloc[start_idx:start_idx + batch_size]
+                    insert_query = f"INSERT INTO MasterDataset ({', '.join(columns)}) VALUES ({', '.join([':' + col for col in columns])})"
+                    data_to_insert = batch_data.to_dict(orient='records')
+                    self.eng.execute(text(insert_query), data_to_insert)
+
+                self.mtable_exists = 1
+        except SQLAlchemyError as e:
+            print(f"Error creating master dataset: {e}")
+            
     @staticmethod
     def list_allnetworks():
         """List all networks in the database.
+
         Returns:
             DataFrame: A DataFrame containing information about all networks in the database.
-        
         """
-        db_manager = DatabaseManager() ; 
-        db_manager.connect() ; 
-        my_eng = db_manager.get_connection() ;
+        try:
+            db_manager = DatabaseManager() 
+            db_manager.connect() 
+            my_eng = db_manager.get_connection() 
 
-        result_proxy = my_eng.execute("SELECT * FROM Networks")
-        result = result_proxy.fetchall()
-        return result
-
+            result_proxy = my_eng.execute("SELECT * FROM Networks")
+            result = result_proxy.fetchall()
+            return pd.DataFrame(result, columns=result_proxy.keys())
+        except SQLAlchemyError as e:
+            print(f"Error listing all networks: {e}")
+            return pd.DataFrame()
+    
+    def get_netid_from_name(self, name):
+        """Get network ID from network name."""
+        try:
+            result = self.eng.execute(text("SELECT NetId FROM Networks WHERE NetName = :name"), {"name": name}).fetchone()
+            if result:
+                return result[0]
+            else:
+                return None
+        except SQLAlchemyError as e:
+            print(f"Error fetching network ID: {e}")
+            return None

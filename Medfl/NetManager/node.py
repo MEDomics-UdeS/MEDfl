@@ -5,6 +5,9 @@ from .net_manager_queries import *
 from MEDfl.LearningManager.utils import params
 from MEDfl.NetManager.database_connector import DatabaseManager
 
+from sqlalchemy import text, exc
+
+
 class Node:
     """
     A class representing a node in the network.
@@ -107,6 +110,7 @@ class Node:
 
     def upload_dataset(self, dataset_name: str, path_to_csv: str = params['path_to_test_csv']):
         """Upload the dataset to the database for the node.
+
         Parameters:
             dataset_name (str): The name of the dataset.
             path_to_csv (str, optional): Path to the CSV file containing the dataset. Default is the path in params.
@@ -114,22 +118,24 @@ class Node:
         Returns:
             None
         """
-        data_df = pd.read_csv(path_to_csv)
+        try:
+            data_df = pd.read_csv(path_to_csv)
+            nodeId = get_nodeid_from_name(self.name)
+            columns = data_df.columns.tolist()
+            self.check_dataset_compatibility(data_df)
 
-        nodeId = get_nodeid_from_name(self.name)
-        columns = data_df.columns.tolist()
-        self.check_dataset_compatibility(data_df)
+            data_df = process_eicu(data_df)
 
-        data_df = process_eicu(data_df)
-        for index, row in data_df.iterrows():
-            query_1 = "INSERT INTO DataSets(DataSetName,nodeId," + "".join(
-                f"{x}," for x in columns
-            )
-            query_2 = f" VALUES ('{dataset_name}',{nodeId}, " + "".join(
-                f"{is_str(data_df, row, x)}," for x in columns
-            )
-            query = query_1[:-1] + ")" + query_2[:-1] + ")"
-            self.engine.execute(text(query))
+            # Insert data in batches
+            batch_size = 1000  # Adjust as needed
+            for start_idx in range(0, len(data_df), batch_size):
+                batch_data = data_df.iloc[start_idx:start_idx + batch_size]
+                insert_query = f"INSERT INTO Datasets (DataSetName, NodeId, {', '.join(columns)}) VALUES (:dataset_name, :nodeId, {', '.join([':' + col for col in columns])})"
+                data_to_insert = batch_data.to_dict(orient='records')
+                params = [{"dataset_name": dataset_name, "nodeId": nodeId, **row} for row in data_to_insert]
+                self.engine.execute(text(insert_query), params)
+        except exc.SQLAlchemyError as e:
+            print(f"Error uploading dataset: {e}")
 
     def assign_dataset(self, dataset_name:str):
         """Assigning existing dataSet to node

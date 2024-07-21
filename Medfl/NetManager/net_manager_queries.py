@@ -32,7 +32,7 @@ SELECT_ALL_NODES_QUERY = "SELECT * FROM Nodes"
 
 
 # SQL query to insert a new network
-INSERT_NETWORK_QUERY = "INSERT INTO Networks(NetName) VALUES ('{name}')"
+INSERT_NETWORK_QUERY = "INSERT INTO Networks(NetName) VALUES (:name)"
 
 # SQL query to delete a network
 DELETE_NETWORK_QUERY = "DELETE FROM Networks WHERE NetName = '{name}'"
@@ -47,28 +47,33 @@ UPDATE_NETWORK_QUERY = (
 )
 
 # SQL query to retrieve all nodes for a network
-LIST_ALL_NODES_QUERY = "SELECT Nodes.NodeName, Networks.NetName FROM Nodes, Networks WHERE Networks.NetName = '{name}' AND Networks.NetId = Nodes.NetId"
+LIST_ALL_NODES_QUERY = """
+SELECT Nodes.NodeName, Networks.NetName 
+FROM Nodes 
+JOIN Networks ON Networks.NetId = Nodes.NetId 
+WHERE Networks.NetName = :name
+"""
 
-# SQL query to create the MasterDataset table
+# SQL query to create the MasterDataset table (SQLite-compatible)
 CREATE_MASTER_DATASET_TABLE_QUERY = """
 CREATE TABLE IF NOT EXISTS MasterDataset (
-    PatientId INT NOT NULL AUTO_INCREMENT,
-    {},
-    PRIMARY KEY (PatientId)
+    PatientId INTEGER PRIMARY KEY AUTOINCREMENT,
+    {}
 );
 """
 
-# SQL query to create the datasets table
+
+# SQL query to create the datasets table (SQLite-compatible)
 CREATE_DATASETS_TABLE_QUERY = """
 CREATE TABLE IF NOT EXISTS Datasets (
-                     DataSetId INT NOT NULL AUTO_INCREMENT, 
-                     DataSetName VARCHAR(255), 
-                     NodeId INT,
-                     {},
-                     PRIMARY KEY (DataSetId)
-                     
+    DataSetId INTEGER PRIMARY KEY AUTOINCREMENT, 
+    DataSetName VARCHAR(255), 
+    NodeId INT,
+    {}
 );
 """
+
+
 
 # SQL query to insert dataset values
 INSERT_DATASET_VALUES_QUERY = "INSERT INTO MasterDataset({columns}, NodeId) VALUES ('{name}', {nodeId}, {values})"

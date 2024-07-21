@@ -14,16 +14,16 @@ with open('requirements.txt') as f:
 
 setup(
     name="MEDfl",
-    version="0.1.26",
+    version="0.1.32",
     author="MEDomics consortium",
     author_email="medomics.info@gmail.com",
     description="Python Open-source package for simulating federated learning and differential privacy",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/HaithemLamri/MEDfl",
+    url="https://github.com/MEDomics-UdeS/MEDfl",
     project_urls={
         'Documentation': 'https://',
-        'Github': 'https://github.com/HaithemLamri/MEDfl'
+        'Github': 'https://github.com/MEDomics-UdeS/MEDfl'
     },
     classifiers=[
         'Development Status :: 3 - Alpha',
