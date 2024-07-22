@@ -6,7 +6,7 @@ lr: 0.001
 min_evalclient: 2
 num_rounds: 20
 optimizer: SGD
-path_to_master_csv: /home/local/USHERBROOKE/saho6810/MEDfl/code/MEDfl/notebooks/data/masterDataSet/Mimic_ouael.csv
+path_to_master_csv: /home/local/USHERBROOKE/saho6810/MEDfl/code/MEDfl/notebooks/data/masterDataSet/miniDiabete.csv
 path_to_test_csv: /home/local/USHERBROOKE/saho6810/MEDfl/code/MEDfl/notebooks/data/masterDataSet/Mimic_train.csv
 task: BinaryClassification
 test_batch_size: 1
