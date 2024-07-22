@@ -1,6 +1,6 @@
-# # MEDfl/LearningManager/__init__.py
+# MEDfl/LearningManager/__init__.py
 
-# # Import modules from this package
+# Import modules from this package
 # from .client import *
 # from .dynamicModal import *
 # from .flpipeline import *
