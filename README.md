@@ -66,4 +66,5 @@ MEDfl is an open-source package that welcomes any contribution and feedback. We 
 ## 6. Authors
 * [MEDomics-UdeS](https://www.medomics-udes.org/en/)
 * [Hithem Lamri](https://github.com/HaithemLamri)
+* [Ouael Nedjem Eddine SAHBI](https://github.com/ouaelesi)
 
