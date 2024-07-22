@@ -2,8 +2,8 @@ import unittest
 from datetime import datetime
 from unittest.mock import Mock, patch
 
-from Medfl.LearningManager.flpipeline import FLpipeline
-from Medfl.LearningManager.server import FlowerServer
+from MEDfl.LearningManager.flpipeline import FLpipeline
+from MEDfl.LearningManager.server import FlowerServer
 
 
 class TestFLpipeline(unittest.TestCase):

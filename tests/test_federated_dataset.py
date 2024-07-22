@@ -8,12 +8,12 @@ from sklearn.preprocessing import LabelEncoder
 from sqlalchemy import Text
 from torch.utils.data import DataLoader, Dataset, TensorDataset
 
-from Medfl.LearningManager.federated_dataset import FederatedDataset
-from Medfl.LearningManager.flpipeline import FLpipeline
-from Medfl.LearningManager.server import FlowerServer
-from Medfl.NetManager.flsetup import FLsetup
-from Medfl.NetManager.net_helper import *
-from Medfl.NetManager.network import Network
+from MEDfl.LearningManager.federated_dataset import FederatedDataset
+from MEDfl.LearningManager.flpipeline import FLpipeline
+from MEDfl.LearningManager.server import FlowerServer
+from MEDfl.NetManager.flsetup import FLsetup
+from MEDfl.NetManager.net_helper import *
+from MEDfl.NetManager.network import Network
 
 
 class TestFederatedDataset(unittest.TestCase):
@@ -28,7 +28,7 @@ class TestFederatedDataset(unittest.TestCase):
         pass
 
     def create_mock_dataset(
-        self, path="~/Desktop/Github/MEDfl/notebooks/eicu_test.csv"
+        self, path="D:\ESI\\3CS\PFE\last_year\Code\MEDfl/notebooks/eicu_test.csv"
     ):
         data_df = pd.read_csv(path)
         encoder = LabelEncoder()

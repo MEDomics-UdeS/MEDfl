@@ -3,9 +3,9 @@ import unittest
 
 import pandas as pd
 
-from Medfl.NetManager.net_helper import my_eng
-from Medfl.NetManager.node import Node
-from Medfl.LearningManager.utils import params
+from MEDfl.NetManager.net_helper import my_eng
+from MEDfl.NetManager.node import Node
+from MEDfl.LearningManager.utils import params
 
 class TestNode(unittest.TestCase):
     def setUp(self):

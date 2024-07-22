@@ -3,12 +3,12 @@ import unittest
 import pkg_resources
 from sqlalchemy import text
 
-from Medfl.NetManager.flsetup import FLsetup
-from Medfl.NetManager.net_helper import *
-from Medfl.NetManager.net_manager_queries import *
-from Medfl.NetManager.network import Network
-from Medfl.NetManager.node import Node
-from Medfl.LearningManager.utils import params
+from MEDfl.NetManager.flsetup import FLsetup
+from MEDfl.NetManager.net_helper import *
+from MEDfl.NetManager.net_manager_queries import *
+from MEDfl.NetManager.network import Network
+from MEDfl.NetManager.node import Node
+from MEDfl.LearningManager.utils import params
 from scripts.base import my_eng
 
 

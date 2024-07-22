@@ -20,6 +20,8 @@ import sphinx.builders.texinfo
 import sphinx.builders.text
 import sphinx.ext.autodoc
 
+print(sys.executable)
+
 sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('../..'))
 
@@ -27,7 +29,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'medfl_docs'
+project = 'MEDfl'
 copyright = '2023, MEDomics consortium'
 author = 'MEDomics consortium'
 
@@ -86,6 +88,7 @@ default_dark_mode = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
+
 html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
@@ -100,7 +103,7 @@ html_theme_options = {
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-
+html_logo = "figures/MEDomics.png"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
