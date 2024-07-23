@@ -21,9 +21,9 @@ Fortunately, Martin knows ``MEDfl``, and he is pretty sure that it's designed fo
 Database management
 ===================
 
-In this tutorial, we'll demonstrate how to initialize your database and establish its connection to Medfl. Subsequently, we'll explore the step-by-step process of storing various pieces of information.
+In this tutorial, we'll demonstrate how to initialize your database and establish its connection to MEDfl. Subsequently, we'll explore the step-by-step process of storing various pieces of information.
 
-Our choice for utilizing `MySQL <https://www.mysql.com/fr/>`_ as the database system is due to its robust features, reliability, and widespread adoption in the industry. Its strong support for structured query language (SQL) and its scalability make it an ideal choice for managing the diverse data sets and configurations within Medfl.
+Our choice for utilizing `MySQL <https://www.mysql.com/fr/>`_ as the database system is due to its robust features, reliability, and widespread adoption in the industry. Its strong support for structured query language (SQL) and its scalability make it an ideal choice for managing the diverse data sets and configurations within MEDfl.
 
 .. image:: figures/Images/logos/mysqllogo.png
    :width: 150px
@@ -69,7 +69,7 @@ The NetManager workflow involves five primary steps:
 Transfer Learning 
 =================
 
-This notebook demonstrates the process of integrating `Transfer Learning <https://ieeexplore.ieee.org/abstract/document/5288526/>`_ using the ``MEDFl`` package. The primary objective of incorporating transfer learning with the package is to harness the capabilities of `Federated-Transfer Learning <https://link.springer.com/chapter/10.1007/978-3-031-11748-0_3>`_ in training models across different hospitals. In real-world scenarios, one of the clients or the aggregating server might possess a `pre-trained model <https://blogs.nvidia.com/blog/what-is-a-pretrained-ai-model/#:~:text=A%20pretrained%20AI%20model%20is,8%2C%202022%20by%20Angie%20Lee>`_ . Leveraging this pre-trained model offers advantages such as enhancing performance and reducing training time.
+This notebook demonstrates the process of integrating `Transfer Learning <https://ieeexplore.ieee.org/abstract/document/5288526/>`_ using the ``MEDfl`` package. The primary objective of incorporating transfer learning with the package is to harness the capabilities of `Federated-Transfer Learning <https://link.springer.com/chapter/10.1007/978-3-031-11748-0_3>`_ in training models across different hospitals. In real-world scenarios, one of the clients or the aggregating server might possess a `pre-trained model <https://blogs.nvidia.com/blog/what-is-a-pretrained-ai-model/#:~:text=A%20pretrained%20AI%20model%20is,8%2C%202022%20by%20Angie%20Lee>`_ . Leveraging this pre-trained model offers advantages such as enhancing performance and reducing training time.
 
 In some instances, a client may lack sufficient data to train a model entirely from scratch, hindering the ability to achieve optimal performance. Utilizing transfer learning becomes a viable strategy to maximize the benefits from each client, allowing the integration of previously learned knowledge to enhance model training and performance.
 
@@ -82,7 +82,7 @@ Learning Manager
 
 .. image:: figures/Images/MEDfl_Diagramm.png
 
-The ``Learning Manager``, serving as the second subpackage of ``Medfl``, extends the work initiated by the ``NetManager``. It operates by taking the federated dataset as its input and, through its processes, generates a **Trained model**. Additionally, it **stores relevant Results** within the database.
+The ``Learning Manager``, serving as the second subpackage of ``MEDfl``, extends the work initiated by the ``NetManager``. It operates by taking the federated dataset as its input and, through its processes, generates a **Trained model**. Additionally, it **stores relevant Results** within the database.
 
 The Federated module of MEDfl, which is based on the `Flower <https://flower.dev/>`_ framework, is well-designed for doing this task. It mainly follows the Flower paradigm but with many customizations to deal with the SQL database and to be homogeneous with the `NetManager`.
 
@@ -93,7 +93,7 @@ The Federated module of MEDfl, which is based on the `Flower <https://flower.dev
 Learning Results
 ================
 
-The testing process in ``Medfl`` is organized into two main phases:
+The testing process in ``MEDfl`` is organized into two main phases:
 
 .. list-table:: Test Phases
    :widths: 20 30 50

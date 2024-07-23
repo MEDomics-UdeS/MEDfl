@@ -6,9 +6,9 @@ from sklearn.preprocessing import LabelEncoder
 
 # Suppress pandas warnings
 from scripts.base import my_eng
-from Medfl.NetManager.dataset import DataSet
+from MEDfl.NetManager.dataset import DataSet
 
-from Medfl.LearningManager.utils import params
+from MEDfl.LearningManager.utils import params
 
 
 class TestDataSet(unittest.TestCase):

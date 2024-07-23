@@ -1,4 +1,4 @@
-Medfl package
+MEDfl package
 =============
 
 Subpackages
@@ -7,13 +7,13 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   Medfl.LearningManager
-   Medfl.NetManager
+   MEDfl.LearningManager
+   MEDfl.NetManager
 
 Module contents
 ---------------
 
-.. automodule:: Medfl
+.. automodule:: MEDfl
    :members:
    :undoc-members:
    :show-inheritance:

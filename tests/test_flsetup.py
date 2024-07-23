@@ -1,8 +1,8 @@
 import unittest
 
 from scripts.base import *
-from Medfl.NetManager.flsetup import FLsetup
-from Medfl.NetManager.network import Network
+from MEDfl.NetManager.flsetup import FLsetup
+from MEDfl.NetManager.network import Network
 
 
 class TestFLsetup(unittest.TestCase):

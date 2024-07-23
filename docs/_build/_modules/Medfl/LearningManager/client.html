@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Medfl.LearningManager.client &mdash; MEDfl 0.1.0 documentation</title>
+  <title>MEDfl.LearningManager.client &mdash; MEDfl 0.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="../../../_static/custom.css" />
@@ -50,7 +50,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">Medfl</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">MEDfl</a></li>
 </ul>
 
         </div>
@@ -68,7 +68,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
-      <li class="breadcrumb-item active">Medfl.LearningManager.client</li>
+      <li class="breadcrumb-item active">MEDfl.LearningManager.client</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -77,7 +77,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>Source code for Medfl.LearningManager.client</h1><div class="highlight"><pre>
+  <h1>Source code for MEDfl.LearningManager.client</h1><div class="highlight"><pre>
 <span></span><span class="ch">#!/usr/bin/env python3</span>
 <span class="kn">import</span> <span class="nn">flwr</span> <span class="k">as</span> <span class="nn">fl</span>
 <span class="kn">from</span> <span class="nn">opacus</span> <span class="kn">import</span> <span class="n">PrivacyEngine</span>
@@ -88,7 +88,7 @@
 <span class="kn">import</span> <span class="nn">torch</span>
 
 <div class="viewcode-block" id="FlowerClient">
-<a class="viewcode-back" href="../../../Medfl.LearningManager.html#Medfl.LearningManager.client.FlowerClient">[docs]</a>
+<a class="viewcode-back" href="../../../MEDfl.LearningManager.html#MEDfl.LearningManager.client.FlowerClient">[docs]</a>
 <span class="k">class</span> <span class="nc">FlowerClient</span><span class="p">(</span><span class="n">fl</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">NumPyClient</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    FlowerClient class for creating MEDfl clients.</span>
@@ -101,7 +101,7 @@
 <span class="sd">        diff_priv (bool): Flag indicating whether to use differential privacy.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="FlowerClient.__init__">
-<a class="viewcode-back" href="../../../Medfl.LearningManager.html#Medfl.LearningManager.client.FlowerClient.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../MEDfl.LearningManager.html#MEDfl.LearningManager.client.FlowerClient.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">local_model</span><span class="p">:</span> <span class="n">Model</span><span class="p">,</span> <span class="n">trainloader</span><span class="p">:</span> <span class="n">DataLoader</span><span class="p">,</span> <span class="n">valloader</span><span class="p">:</span> <span class="n">DataLoader</span><span class="p">,</span> <span class="n">diff_priv</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s2">&quot;diff_privacy&quot;</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initializes the FlowerClient instance.</span>
@@ -140,14 +140,14 @@
 
 
 <div class="viewcode-block" id="FlowerClient.validate">
-<a class="viewcode-back" href="../../../Medfl.LearningManager.html#Medfl.LearningManager.client.FlowerClient.validate">[docs]</a>
+<a class="viewcode-back" href="../../../MEDfl.LearningManager.html#MEDfl.LearningManager.client.FlowerClient.validate">[docs]</a>
     <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Validates cid, local_model, trainloader, valloader.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cid</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;cid argument must be a string&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">local_model</span><span class="p">,</span> <span class="n">Model</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;local_model argument must be a Medfl.LearningManager.model.Model&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;local_model argument must be a MEDfl.LearningManager.model.Model&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trainloader</span><span class="p">,</span> <span class="n">DataLoader</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;trainloader argument must be a torch.utils.data.dataloader&quot;</span><span class="p">)</span>
@@ -160,7 +160,7 @@
 
 
 <div class="viewcode-block" id="FlowerClient.get_parameters">
-<a class="viewcode-back" href="../../../Medfl.LearningManager.html#Medfl.LearningManager.client.FlowerClient.get_parameters">[docs]</a>
+<a class="viewcode-back" href="../../../MEDfl.LearningManager.html#MEDfl.LearningManager.client.FlowerClient.get_parameters">[docs]</a>
     <span class="k">def</span> <span class="nf">get_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the current parameters of the local model.</span>
@@ -176,7 +176,7 @@
 
 
 <div class="viewcode-block" id="FlowerClient.fit">
-<a class="viewcode-back" href="../../../Medfl.LearningManager.html#Medfl.LearningManager.client.FlowerClient.fit">[docs]</a>
+<a class="viewcode-back" href="../../../MEDfl.LearningManager.html#MEDfl.LearningManager.client.FlowerClient.fit">[docs]</a>
     <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Fits the local model to the received parameters using federated learning.</span>
@@ -208,7 +208,7 @@
 
 
 <div class="viewcode-block" id="FlowerClient.evaluate">
-<a class="viewcode-back" href="../../../Medfl.LearningManager.html#Medfl.LearningManager.client.FlowerClient.evaluate">[docs]</a>
+<a class="viewcode-back" href="../../../MEDfl.LearningManager.html#MEDfl.LearningManager.client.FlowerClient.evaluate">[docs]</a>
     <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Evaluates the local model on the validation data and returns the loss and accuracy.</span>

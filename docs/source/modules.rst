@@ -1,7 +1,7 @@
-Medfl
+MEDfl
 =====
 
 .. toctree::
    :maxdepth: 4
 
-   Medfl
+   MEDfl

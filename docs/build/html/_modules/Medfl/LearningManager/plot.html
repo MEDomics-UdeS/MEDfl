@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Medfl.LearningManager.plot &mdash; MEDfl 0.1.0 documentation</title>
+  <title>MEDfl.LearningManager.plot &mdash; MEDfl 0.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
       <link rel="stylesheet" type="text/css" href="../../../_static/custom.css" />
@@ -67,7 +67,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">Medfl</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">MEDfl</a></li>
 </ul>
 
         </div>
@@ -85,7 +85,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
-      <li class="breadcrumb-item active">Medfl.LearningManager.plot</li>
+      <li class="breadcrumb-item active">MEDfl.LearningManager.plot</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -94,7 +94,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>Source code for Medfl.LearningManager.plot</h1><div class="highlight"><pre>
+  <h1>Source code for MEDfl.LearningManager.plot</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
@@ -128,7 +128,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 
-<div class="viewcode-block" id="AccuracyLossPlotter"><a class="viewcode-back" href="../../../Medfl.LearningManager.html#Medfl.LearningManager.plot.AccuracyLossPlotter">[docs]</a><span class="k">class</span> <span class="nc">AccuracyLossPlotter</span><span class="p">:</span>
+<div class="viewcode-block" id="AccuracyLossPlotter"><a class="viewcode-back" href="../../../MEDfl.LearningManager.html#MEDfl.LearningManager.plot.AccuracyLossPlotter">[docs]</a><span class="k">class</span> <span class="nc">AccuracyLossPlotter</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A utility class for plotting accuracy and loss metrics based on experiment results.</span>
 
@@ -142,7 +142,7 @@
 <span class="sd">        iterations (range): Range of iterations (rounds or epochs) in the experiment.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="AccuracyLossPlotter.__init__"><a class="viewcode-back" href="../../../Medfl.LearningManager.html#Medfl.LearningManager.plot.AccuracyLossPlotter.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results_dict</span><span class="p">):</span>
+<div class="viewcode-block" id="AccuracyLossPlotter.__init__"><a class="viewcode-back" href="../../../MEDfl.LearningManager.html#MEDfl.LearningManager.plot.AccuracyLossPlotter.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results_dict</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize the AccuracyLossPlotter with experiment results.</span>
 
@@ -156,7 +156,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">param</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">results_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()]))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">iterations</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">results_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="AccuracyLossPlotter.plot_accuracy_loss"><a class="viewcode-back" href="../../../Medfl.LearningManager.html#Medfl.LearningManager.plot.AccuracyLossPlotter.plot_accuracy_loss">[docs]</a>    <span class="k">def</span> <span class="nf">plot_accuracy_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="AccuracyLossPlotter.plot_accuracy_loss"><a class="viewcode-back" href="../../../MEDfl.LearningManager.html#MEDfl.LearningManager.plot.AccuracyLossPlotter.plot_accuracy_loss">[docs]</a>    <span class="k">def</span> <span class="nf">plot_accuracy_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot accuracy and loss metrics for different parameters.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -182,7 +182,7 @@
             <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="AccuracyLossPlotter.plot_global_confusion_matrix"><a class="viewcode-back" href="../../../Medfl.LearningManager.html#Medfl.LearningManager.plot.AccuracyLossPlotter.plot_global_confusion_matrix">[docs]</a>    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AccuracyLossPlotter.plot_global_confusion_matrix"><a class="viewcode-back" href="../../../MEDfl.LearningManager.html#MEDfl.LearningManager.plot.AccuracyLossPlotter.plot_global_confusion_matrix">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">plot_global_confusion_matrix</span><span class="p">(</span><span class="n">pipeline_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot a global confusion matrix based on pipeline results.</span>
@@ -221,7 +221,7 @@
         <span class="c1"># Display the confusion matrix heatmap</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="AccuracyLossPlotter.plot_confusion_Matrix_by_node"><a class="viewcode-back" href="../../../Medfl.LearningManager.html#Medfl.LearningManager.plot.AccuracyLossPlotter.plot_confusion_Matrix_by_node">[docs]</a>    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AccuracyLossPlotter.plot_confusion_Matrix_by_node"><a class="viewcode-back" href="../../../MEDfl.LearningManager.html#MEDfl.LearningManager.plot.AccuracyLossPlotter.plot_confusion_Matrix_by_node">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">plot_confusion_Matrix_by_node</span><span class="p">(</span><span class="n">node_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pipeline_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot a confusion matrix for a specific node in the pipeline.</span>
@@ -264,7 +264,7 @@
         <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
         <span class="k">return</span></div>
     
-<div class="viewcode-block" id="AccuracyLossPlotter.plot_classification_report"><a class="viewcode-back" href="../../../Medfl.LearningManager.html#Medfl.LearningManager.plot.AccuracyLossPlotter.plot_classification_report">[docs]</a>    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AccuracyLossPlotter.plot_classification_report"><a class="viewcode-back" href="../../../MEDfl.LearningManager.html#MEDfl.LearningManager.plot.AccuracyLossPlotter.plot_classification_report">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">plot_classification_report</span><span class="p">(</span><span class="n">pipeline_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot a comparison of classification report metrics between nodes.</span>

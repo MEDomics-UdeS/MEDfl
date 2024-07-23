@@ -43,7 +43,7 @@ with open(yaml_path) as g:
 DEFAULT_CONFIG_PATH = 'db_config.ini'
 
 
-def load_db_config():
+def load_db_config_dep():
     config = os.environ.get('MEDfl_DB_CONFIG')
 
     if config:
@@ -54,13 +54,36 @@ def load_db_config():
 # Function to allow users to set config path programmatically
 
 
-def set_db_config(config_path):
+def set_db_config_dep(config_path):
     config = configparser.ConfigParser()
-    config.read(config_path)        
-    if (config['mysql']):
-        os.environ['MEDfl_DB_CONFIG'] = str(dict(config['mysql']))
+    config.read(config_path)
+    if (config['sqllite']):
+        os.environ['MEDfl_DB_CONFIG'] = str(dict(config['sqllite']))
     else:
         raise ValueError(f"mysql key not found in file '{config_path}'")
+
+
+
+def load_db_config():
+    """Read a dictionary from an environment variable."""
+    obj_str = os.getenv("MEDfl_DB_CONFIG")
+    if obj_str is not None:
+        return ast.literal_eval(obj_str)
+    else:
+        raise ValueError(f"Environment variable MEDfl_DB_CONFIG not found")
+
+# Function to allow users to set config path programmatically
+
+
+def set_db_config(config_path):
+    obj = {"database" : config_path}
+
+    """Store a dictionary as a string in an environment variable."""
+    obj_str = str(obj)
+    os.environ['MEDfl_DB_CONFIG'] = obj_str
+
+    
+
 
 
 
