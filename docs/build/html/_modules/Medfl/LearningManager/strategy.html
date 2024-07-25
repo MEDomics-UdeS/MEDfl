@@ -102,11 +102,16 @@
 <span class="kn">import</span> <span class="nn">flwr</span> <span class="k">as</span> <span class="nn">fl</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
+<span class="kn">import</span> <span class="nn">optuna</span>
 
 
 
 
+<<<<<<< HEAD
+<div class="viewcode-block" id="Strategy"><a class="viewcode-back" href="../../../Medfl.LearningManager.html#Medfl.LearningManager.strategy.Strategy">[docs]</a><span class="k">class</span>  <span class="nc">Strategy</span><span class="p">:</span>
+=======
 <div class="viewcode-block" id="Strategy"><a class="viewcode-back" href="../../../MEDfl.LearningManager.html#MEDfl.LearningManager.strategy.Strategy">[docs]</a><span class="k">class</span> <span class="nc">Strategy</span><span class="p">:</span>
+>>>>>>> 58b1e52fd8ab5e97505682e684fd63c00521021e
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A class representing a strategy for Federated Learning.</span>
 
@@ -153,17 +158,29 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">min_available_clients</span> <span class="o">=</span> <span class="n">min_available_clients</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">initial_parameters</span> <span class="o">=</span> <span class="n">initial_parameters</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">evaluate_fn</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">strategy_object</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;fl.server.strategy.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">(</span><span class="se">\</span>
-<span class="s2">                   fraction_fit=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fraction_fit</span><span class="si">}</span><span class="s2">,</span><span class="se">\</span>
-<span class="s2">                  fraction_evaluate= </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fraction_evaluate</span><span class="si">}</span><span class="s2">,</span><span class="se">\</span>
-<span class="s2">                  min_fit_clients= </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">min_fit_clients</span><span class="si">}</span><span class="s2">,</span><span class="se">\</span>
-<span class="s2">                  min_evaluate_clients= </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">min_evaluate_clients</span><span class="si">}</span><span class="s2">,</span><span class="se">\</span>
-<span class="s2">                  min_available_clients=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">min_available_clients</span><span class="si">}</span><span class="s2">,</span><span class="se">\</span>
-<span class="s2">                  initial_parameters=fl.common.ndarrays_to_parameters(self.initial_parameters),</span><span class="se">\</span>
-<span class="s2">                  evaluate_fn=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">evaluate_fn</span><span class="si">}</span><span class="s2">)&quot;</span>
-        <span class="p">)</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span></div>
+    
+<div class="viewcode-block" id="Strategy.optuna_fed_optimization"><a class="viewcode-back" href="../../../Medfl.LearningManager.html#Medfl.LearningManager.strategy.Strategy.optuna_fed_optimization">[docs]</a>    <span class="k">def</span> <span class="nf">optuna_fed_optimization</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span><span class="nb">str</span> <span class="p">,</span> <span class="n">hpo_rate</span><span class="p">:</span><span class="nb">int</span> <span class="p">,</span> <span class="n">params_config</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">study</span> <span class="o">=</span> <span class="n">optuna</span><span class="o">.</span><span class="n">create_study</span><span class="p">(</span><span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hpo_rate</span> <span class="o">=</span> <span class="n">hpo_rate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params_config</span> <span class="o">=</span> <span class="n">params_config</span></div>
+    
+ 
+<div class="viewcode-block" id="Strategy.create_strategy"><a class="viewcode-back" href="../../../Medfl.LearningManager.html#Medfl.LearningManager.strategy.Strategy.create_strategy">[docs]</a>    <span class="k">def</span> <span class="nf">create_strategy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">strategy_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_strategy_by_name</span><span class="p">()(</span>
+            <span class="n">fraction_fit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fraction_fit</span><span class="p">,</span>
+            <span class="n">fraction_evaluate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fraction_evaluate</span><span class="p">,</span>
+            <span class="n">min_fit_clients</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">min_fit_clients</span><span class="p">,</span>
+            <span class="n">min_evaluate_clients</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">min_evaluate_clients</span><span class="p">,</span>
+            <span class="n">min_available_clients</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">min_available_clients</span><span class="p">,</span>
+            <span class="n">initial_parameters</span><span class="o">=</span><span class="n">fl</span><span class="o">.</span><span class="n">common</span><span class="o">.</span><span class="n">ndarrays_to_parameters</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_parameters</span><span class="p">),</span>
+            <span class="n">evaluate_fn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">evaluate_fn</span>
+        <span class="p">)</span></div>
+<div class="viewcode-block" id="Strategy.get_strategy_by_name"><a class="viewcode-back" href="../../../Medfl.LearningManager.html#Medfl.LearningManager.strategy.Strategy.get_strategy_by_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_strategy_by_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">eval</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;fl.server.strategy.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div></div>
+    
+    
+
 </pre></div>
 
            </div>

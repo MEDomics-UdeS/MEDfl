@@ -104,6 +104,7 @@
 <span class="c1"># File: create_query.py</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">text</span>
 <span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">DataLoader</span><span class="p">,</span> <span class="n">TensorDataset</span>
+<span class="kn">import</span> <span class="nn">torch</span> 
 
 <span class="kn">from</span> <span class="nn">MEDfl.LearningManager.server</span> <span class="kn">import</span> <span class="n">FlowerServer</span>
 <span class="kn">from</span> <span class="nn">MEDfl.LearningManager.utils</span> <span class="kn">import</span> <span class="n">params</span><span class="p">,</span> <span class="n">test</span>
@@ -157,10 +158,10 @@
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;name argument must be a string&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">description</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;description argument must be a string&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;description argument must be a string&quot;</span><span class="p">)</span></div>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="p">,</span> <span class="n">FlowerServer</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;server argument must be a FlowerServer&quot;</span><span class="p">)</span></div>
+        <span class="c1"># if not isinstance(self.server, FlowerServer):</span>
+        <span class="c1">#     raise TypeError(&quot;server argument must be a FlowerServer&quot;)</span>
 
 <div class="viewcode-block" id="FLpipeline.create"><a class="viewcode-back" href="../../../MEDfl.LearningManager.html#MEDfl.LearningManager.flpipeline.FLpipeline.create">[docs]</a>    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -196,8 +197,14 @@
         <span class="c1"># Placeholder code for deleting the FLpipeline entry from the database based on the name.</span>
         <span class="c1"># You need to implement the actual deletion based on your database setup.</span>
         <span class="n">my_eng</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">DELETE_FLPIPELINE_QUERY</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span></div>
+<<<<<<< HEAD
+
+
+<div class="viewcode-block" id="FLpipeline.test_by_node"><a class="viewcode-back" href="../../../Medfl.LearningManager.html#Medfl.LearningManager.flpipeline.FLpipeline.test_by_node">[docs]</a>    <span class="k">def</span> <span class="nf">test_by_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">test_frac</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+=======
     
 <div class="viewcode-block" id="FLpipeline.test_by_node"><a class="viewcode-back" href="../../../MEDfl.LearningManager.html#MEDfl.LearningManager.flpipeline.FLpipeline.test_by_node">[docs]</a>    <span class="k">def</span> <span class="nf">test_by_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">test_frac</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+>>>>>>> 58b1e52fd8ab5e97505682e684fd63c00521021e
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Test the FLpipeline by node with the specified test_frac.</span>
 
@@ -214,23 +221,33 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">global_model</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">fed_dataset</span><span class="o">.</span><span class="n">testloaders</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span>
         <span class="p">)</span>
+        
+        <span class="c1"># Move model to GPU if available</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+        <span class="n">global_model</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        
+        <span class="c1"># Prepare test data</span>
         <span class="n">test_data</span> <span class="o">=</span> <span class="n">test_loader</span><span class="o">.</span><span class="n">dataset</span>
-        <span class="n">test_data</span> <span class="o">=</span> <span class="n">TensorDataset</span><span class="p">(</span>
-            <span class="n">test_data</span><span class="p">[:</span> <span class="nb">int</span><span class="p">(</span><span class="n">test_frac</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_data</span><span class="p">))][</span><span class="mi">0</span><span class="p">],</span>
-            <span class="n">test_data</span><span class="p">[:</span> <span class="nb">int</span><span class="p">(</span><span class="n">test_frac</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_data</span><span class="p">))][</span><span class="mi">1</span><span class="p">],</span>
-        <span class="p">)</span>
-        <span class="n">test_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span>
-            <span class="n">test_data</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;test_batch_size&quot;</span><span class="p">]</span>
-        <span class="p">)</span>
-        <span class="n">classification_report</span> <span class="o">=</span> <span class="n">test</span><span class="p">(</span>
-            <span class="n">model</span><span class="o">=</span><span class="n">global_model</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">test_loader</span><span class="o">=</span><span class="n">test_loader</span>
-        <span class="p">)</span>
+        <span class="n">num_samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">test_frac</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_data</span><span class="p">))</span>
+        <span class="n">test_data</span> <span class="o">=</span> <span class="n">TensorDataset</span><span class="p">(</span><span class="n">test_data</span><span class="p">[:</span><span class="n">num_samples</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">),</span> <span class="n">test_data</span><span class="p">[:</span><span class="n">num_samples</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">))</span>
+        
+        <span class="c1"># Create DataLoader for test data</span>
+        <span class="n">test_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">test_data</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;test_batch_size&quot;</span><span class="p">])</span>
+
+        <span class="c1"># Perform testing</span>
+        <span class="n">classification_report</span> <span class="o">=</span> <span class="n">test</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">global_model</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">test_loader</span><span class="o">=</span><span class="n">test_loader</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;node_name&quot;</span><span class="p">:</span> <span class="n">node_name</span><span class="p">,</span>
             <span class="s2">&quot;classification_report&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">classification_report</span><span class="p">),</span>
         <span class="p">}</span></div>
 
+<<<<<<< HEAD
+
+<div class="viewcode-block" id="FLpipeline.auto_test"><a class="viewcode-back" href="../../../Medfl.LearningManager.html#Medfl.LearningManager.flpipeline.FLpipeline.auto_test">[docs]</a>    <span class="k">def</span> <span class="nf">auto_test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_frac</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+=======
 <div class="viewcode-block" id="FLpipeline.auto_test"><a class="viewcode-back" href="../../../MEDfl.LearningManager.html#MEDfl.LearningManager.flpipeline.FLpipeline.auto_test">[docs]</a>    <span class="k">def</span> <span class="nf">auto_test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_frac</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+>>>>>>> 58b1e52fd8ab5e97505682e684fd63c00521021e
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Automatically test the FLpipeline on all nodes with the specified test_frac.</span>
 

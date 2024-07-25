@@ -148,10 +148,9 @@
 <span class="sd">            diff_privacy (bool, optional): Whether differential privacy is used during the federated learning process.</span>
 <span class="sd">                                           Default is False.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># self.device = torch.device(</span>
-        <span class="c1">#     f&quot;cuda&quot; if torch.cuda.is_available() else &quot;cpu&quot;</span>
-        <span class="c1"># )</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="o">=</span> <span class="s2">&quot;cpu&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span>
+        <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">global_model</span> <span class="o">=</span> <span class="n">global_model</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">global_model</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">global_model</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">global_model</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
@@ -175,6 +174,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">diff_priv</span> <span class="o">=</span> <span class="n">diff_privacy</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">accuracies</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">losses</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">auc</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">flower_clients</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span></div>
 
@@ -183,8 +183,10 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">global_model</span><span class="p">,</span> <span class="n">Model</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;global_model argument must be a Model instance&quot;</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">strategy</span><span class="p">,</span> <span class="n">Strategy</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;strategy argument must be a Strategy instance&quot;</span><span class="p">)</span>
+        <span class="c1"># if not isinstance(self.strategy, Strategy):</span>
+        <span class="c1">#     print(self.strategy)</span>
+        <span class="c1">#     print(isinstance(self.strategy, Strategy))</span>
+        <span class="c1">#     raise TypeError(&quot;strategy argument must be a Strategy instance&quot;)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_clients</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;num_clients argument must be an int&quot;</span><span class="p">)</span>
@@ -205,10 +207,12 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            FlowerClient: A FlowerClient object representing the individual client.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        
         <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;cuda:</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">cid</span><span class="p">)</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="mi">4</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span>
         <span class="p">)</span>
         <span class="n">client_model</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">global_model</span><span class="p">)</span>
+        
         <span class="n">trainloader</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fed_dataset</span><span class="o">.</span><span class="n">trainloaders</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">cid</span><span class="p">)]</span>
         <span class="n">valloader</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fed_dataset</span><span class="o">.</span><span class="n">valloaders</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">cid</span><span class="p">)]</span>
         <span class="c1"># this helps in making plots</span>
@@ -236,13 +240,15 @@
 <span class="sd">            Optional[Tuple[float, Dict[str, fl.common.Scalar]]]: The evaluation loss and accuracy.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">testloader</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fed_dataset</span><span class="o">.</span><span class="n">valloaders</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        
         <span class="bp">self</span><span class="o">.</span><span class="n">global_model</span><span class="o">.</span><span class="n">set_parameters</span><span class="p">(</span>
             <span class="n">parameters</span>
         <span class="p">)</span>  <span class="c1"># Update model with the latest parameters</span>
-        <span class="n">loss</span><span class="p">,</span> <span class="n">accuracy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_model</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">testloader</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">loss</span><span class="p">,</span> <span class="n">accuracy</span> <span class="p">,</span><span class="n">auc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_model</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">testloader</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">auc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">auc</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">accuracies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">accuracy</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Server-side evaluation loss </span><span class="si">{</span><span class="n">loss</span><span class="si">}</span><span class="s2"> / accuracy </span><span class="si">{</span><span class="n">accuracy</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
         <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;accuracy&quot;</span><span class="p">:</span> <span class="n">accuracy</span><span class="p">}</span></div>
 
 <div class="viewcode-block" id="FlowerServer.run"><a class="viewcode-back" href="../../../MEDfl.LearningManager.html#MEDfl.LearningManager.server.FlowerServer.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>

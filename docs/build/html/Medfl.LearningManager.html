@@ -703,12 +703,17 @@ Initialize FLpipeline with the specified name, description, and server.</p>
 </dd></dl>
 
 <dl class="py method">
+<<<<<<< HEAD
+<dt class="sig sig-object py" id="Medfl.LearningManager.model.Model.load_model">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Medfl/LearningManager/model.html#Model.load_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Medfl.LearningManager.model.Model.load_model" title="Permalink to this definition"></a></dt>
+=======
 <dt class="sig sig-object py" id="MEDfl.LearningManager.model.Model.load_model">
 <em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MEDfl/LearningManager/model.html#Model.load_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MEDfl.LearningManager.model.Model.load_model" title="Permalink to this definition"></a></dt>
+>>>>>>> 58b1e52fd8ab5e97505682e684fd63c00521021e
 <dd><p>Loads a PyTorch model from a file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>model_name</strong> (<em>str</em>) – Name of the model file to be loaded.</p>
+<dd class="field-odd"><p><strong>model_path</strong> (<em>str</em>) – Path to the model file to be loaded.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Loaded PyTorch model.</p>
@@ -1214,14 +1219,34 @@ Default is False.</p></li>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="Medfl.LearningManager.strategy.Strategy.create_strategy">
+<span class="sig-name descname"><span class="pre">create_strategy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Medfl/LearningManager/strategy.html#Strategy.create_strategy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Medfl.LearningManager.strategy.Strategy.create_strategy" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Medfl.LearningManager.strategy.Strategy.get_strategy_by_name">
+<span class="sig-name descname"><span class="pre">get_strategy_by_name</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Medfl/LearningManager/strategy.html#Strategy.get_strategy_by_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Medfl.LearningManager.strategy.Strategy.get_strategy_by_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Medfl.LearningManager.strategy.Strategy.optuna_fed_optimization">
+<span class="sig-name descname"><span class="pre">optuna_fed_optimization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hpo_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params_config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Medfl/LearningManager/strategy.html#Strategy.optuna_fed_optimization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Medfl.LearningManager.strategy.Strategy.optuna_fed_optimization" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 </section>
 <section id="module-MEDfl.LearningManager.utils">
 <span id="MEDfl-learningmanager-utils-module"></span><h2>MEDfl.LearningManager.utils module<a class="headerlink" href="#module-MEDfl.LearningManager.utils" title="Permalink to this heading"></a></h2>
 <dl class="py function">
+<<<<<<< HEAD
+<dt class="sig sig-object py" id="Medfl.LearningManager.utils.custom_classification_report">
+<span class="sig-prename descclassname"><span class="pre">Medfl.LearningManager.utils.</span></span><span class="sig-name descname"><span class="pre">custom_classification_report</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y_true</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_pred_prob</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Medfl/LearningManager/utils.html#custom_classification_report"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Medfl.LearningManager.utils.custom_classification_report" title="Permalink to this definition"></a></dt>
+=======
 <dt class="sig sig-object py" id="MEDfl.LearningManager.utils.custom_classification_report">
 <span class="sig-prename descclassname"><span class="pre">MEDfl.LearningManager.utils.</span></span><span class="sig-name descname"><span class="pre">custom_classification_report</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y_true</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_pred</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MEDfl/LearningManager/utils.html#custom_classification_report"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MEDfl.LearningManager.utils.custom_classification_report" title="Permalink to this definition"></a></dt>
+>>>>>>> 58b1e52fd8ab5e97505682e684fd63c00521021e
 <dd><p>Compute custom classification report metrics including accuracy, sensitivity, specificity, precision, NPV,
 F1-score, false positive rate, and true positive rate.</p>
 <dl class="field-list simple">
