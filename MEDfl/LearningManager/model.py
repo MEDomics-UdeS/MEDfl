@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-# froked from https://github.com/pythonlessons/mltu/blob/main/mltu/torch/model.py
 
+import logging
+import sys
 import typing
 from collections import OrderedDict
 from typing import Dict, List, Optional, Tuple
@@ -8,19 +9,39 @@ from typing import Dict, List, Optional, Tuple
 import numpy as np
 import torch
 import torch.nn as nn
-from sklearn.metrics import accuracy_score,roc_auc_score
+from sklearn.metrics import (
+    accuracy_score, roc_auc_score,
+    mean_squared_error, mean_absolute_error, r2_score,
+)
 
 from .utils import params
+
+
+# ---------------------------------------------------------------------------
+# Per-worker logger — same pattern as client.py so Ray forwards to notebook
+# ---------------------------------------------------------------------------
+def _get_logger() -> logging.Logger:
+    logger = logging.getLogger("MEDfl.model")
+    if not logger.handlers:
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(
+            logging.Formatter(
+                "[%(asctime)s][%(name)s][%(levelname)s] %(message)s",
+                datefmt="%H:%M:%S",
+            )
+        )
+        logger.addHandler(handler)
+        logger.setLevel(logging.DEBUG)
+        logger.propagate = False
+    return logger
+
+
+_log = _get_logger()
 
 
 class Model:
     """
     Model class for training and testing PyTorch neural networks.
-
-    Attributes:
-        model (torch.nn.Module): PyTorch neural network.
-        optimizer (torch.optim.Optimizer): PyTorch optimizer.
-        criterion (typing.Callable): Loss function.
     """
 
     def __init__(
@@ -28,197 +49,232 @@ class Model:
         model: torch.nn.Module,
         optimizer: torch.optim.Optimizer,
         criterion: typing.Callable,
+        task_type: str = "binary",
     ) -> None:
-        """
-        Initialize Model class with the specified model, optimizer, and criterion.
-
-        Args:
-            model (torch.nn.Module): PyTorch neural network.
-            optimizer (torch.optim.Optimizer): PyTorch optimizer.
-            criterion (typing.Callable): Loss function.
-        """
         self.model = model
         self.optimizer = optimizer
         self.criterion = criterion
-        # Get device on which model is running
+        self.task_type = task_type
         self.validate()
 
     def validate(self) -> None:
-        """
-        Validate model and optimizer.
-        """
         if not isinstance(self.model, torch.nn.Module):
             raise TypeError("model argument must be a torch.nn.Module")
-
         if not isinstance(self.optimizer, torch.optim.Optimizer):
-            raise TypeError(
-                "optimizer argument must be a torch.optim.Optimizer"
-            )
+            raise TypeError("optimizer argument must be a torch.optim.Optimizer")
 
     def get_parameters(self) -> List[np.ndarray]:
-        """
-        Get the parameters of the model as a list of NumPy arrays.
-
-        Returns:
-            List[np.ndarray]: The parameters of the model as a list of NumPy arrays.
-        """
-        return [
-            val.cpu().numpy() for _, val in self.model.state_dict().items()
-        ]
+        return [val.detach().cpu().numpy() for val in self.model.state_dict().values()]
 
     def set_parameters(self, parameters: List[np.ndarray]) -> None:
-        """
-        Set the parameters of the model from a list of NumPy arrays.
+        state_dict = self.model.state_dict()
+        keys = list(state_dict.keys())
+        device = next(self.model.parameters()).device
+        new_state_dict = OrderedDict()
+        for k, v in zip(keys, parameters):
+            ref = state_dict[k]
+            new_state_dict[k] = torch.as_tensor(v, device=device, dtype=ref.dtype)
+        self.model.load_state_dict(new_state_dict, strict=True)
 
-        Args:
-            parameters (List[np.ndarray]): The parameters to be set.
-        """
-        params_dict = zip(self.model.state_dict().keys(), parameters)
-        state_dict = OrderedDict({k: torch.Tensor(v) for k, v in params_dict})
-        self.model.load_state_dict(state_dict, strict=True)
-
-    def train(
-        self, train_loader, epoch, device, privacy_engine, diff_priv=False
-    ) -> float:
-        """
-        Train the model on the given train_loader for one epoch.
-
-        Args:
-            train_loader: The data loader for training data.
-            epoch (int): The current epoch number.
-            device: The device on which to perform the training.
-            privacy_engine: The privacy engine used for differential privacy (if enabled).
-            diff_priv (bool, optional): Whether differential privacy is used. Default is False.
-
-        Returns:
-            float: The value of epsilon used in differential privacy.
-        """
+    def train(self, train_loader, epoch, device, privacy_engine, diff_priv=False) -> float:
         self.model.train()
-        epsilon = 0
+        epsilon = 0.0
         losses = []
-        top1_acc = []
+        metrics = []
 
         for i, (X_train, y_train) in enumerate(train_loader):
-            X_train, y_train = X_train.to(device), y_train.to(device)  
-            
-            self.optimizer.zero_grad()
+            X_train = X_train.to(device)
+            y_train = y_train.to(device).view(-1)
 
-            # compute output
-            y_hat = torch.squeeze(self.model(X_train), 1)
+            if torch.isnan(X_train).any() or torch.isinf(X_train).any():
+                _log.warning(f"Train batch {i}: X_train has NaN/Inf -> skipping batch")
+                continue
+            if torch.isnan(y_train).any() or torch.isinf(y_train).any():
+                _log.warning(f"Train batch {i}: y_train has NaN/Inf -> skipping batch")
+                continue
+
+            if i == 0 and epoch == 0:
+                try:
+                    _log.debug(
+                        f"Train scale check | "
+                        f"X min/max: {X_train.min().item():.4f} / {X_train.max().item():.4f} | "
+                        f"y min/max: {y_train.min().item():.4f} / {y_train.max().item():.4f}"
+                    )
+                except Exception:
+                    pass
+
+            self.optimizer.zero_grad(set_to_none=True)
+
+            y_hat = self.model(X_train).view(-1)
+
+            if torch.isnan(y_hat).any() or torch.isinf(y_hat).any():
+                _log.warning(f"Train batch {i}: y_hat has NaN/Inf -> skipping batch")
+                continue
+
             loss = self.criterion(y_hat, y_train)
 
-            preds = np.argmax(y_hat.detach().cpu().numpy(), axis=0)
-            labels = y_train.detach().cpu().numpy()
+            if torch.isnan(loss) or torch.isinf(loss):
+                _log.warning(f"Train batch {i}: loss is NaN/Inf -> skipping batch")
+                continue
 
-            # measure accuracy and record loss
-            acc = (preds == labels).mean()
-
-            losses.append(loss.item())
-            top1_acc.append(acc)
-
+            losses.append(float(loss.item()))
             loss.backward()
+
+            bad_grad = False
+            for name, p in self.model.named_parameters():
+                if p.grad is None:
+                    continue
+                if torch.isnan(p.grad).any() or torch.isinf(p.grad).any():
+                    _log.warning(
+                        f"Train batch {i}: grad NaN/Inf in {name} "
+                        f"(NaN={torch.isnan(p.grad).sum().item()}, "
+                        f"Inf={torch.isinf(p.grad).sum().item()}) -> skipping update"
+                    )
+                    bad_grad = True
+                    break
+
+            if bad_grad:
+                self.optimizer.zero_grad(set_to_none=True)
+                continue
+
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
             self.optimizer.step()
 
+            if self.task_type == "binary":
+                y_prob = y_hat.detach().cpu().numpy()
+                y_true = y_train.detach().cpu().numpy()
+                acc = accuracy_score(y_true, (y_prob >= 0.5).astype(int))
+                metrics.append(float(acc))
+            elif self.task_type == "regression":
+                rmse = torch.sqrt(torch.mean((y_hat - y_train) ** 2)).item()
+                metrics.append(float(rmse))
+
             if diff_priv:
-                epsilon = privacy_engine.get_epsilon(float(params["DELTA"]))
+                epsilon = float(privacy_engine.get_epsilon(float(params["DELTA"])))
 
-            if (i + 1) % 10 == 0:
-                if diff_priv:
-                    epsilon = privacy_engine.get_epsilon(float(params["DELTA"]))
-                    print(
-                        f"\tTrain Epoch: {epoch} \t"
-                        f"Loss: {np.mean(losses):.6f} "
-                        f"Acc@1: {np.mean(top1_acc) * 100:.6f} "
-                        f"(ε = {epsilon:.2f}, δ = {params['DELTA']})"
+            if (i + 1) % 10 == 0 and len(losses) > 0:
+                if self.task_type == "binary" and len(metrics) > 0:
+                    _log.info(
+                        f"Train Epoch {epoch} | batch {i+1} | "
+                        f"Loss {np.mean(losses):.6f} | "
+                        f"Acc {np.mean(metrics) * 100:.2f}%"
+                        + (f" | ε={epsilon:.2f}" if diff_priv else "")
                     )
-                else:
-                    print(
-                        f"\tTrain Epoch: {epoch} \t"
-                        f"Loss: {np.mean(losses):.6f} "
-                        f"Acc@1: {np.mean(top1_acc) * 100:.6f}"
+                elif self.task_type == "regression" and len(metrics) > 0:
+                    _log.info(
+                        f"Train Epoch {epoch} | batch {i+1} | "
+                        f"Loss {np.mean(losses):.6f} | "
+                        f"RMSE {np.mean(metrics):.6f}"
+                        + (f" | ε={epsilon:.2f}" if diff_priv else "")
                     )
 
-        return epsilon
+        mean_train_loss = float(np.mean(losses)) if len(losses) else float("nan")
+        mean_train_metric = float(np.mean(metrics)) if len(metrics) else float("nan")
 
-    def evaluate(self, val_loader, device=torch.device("cpu")) -> Tuple[float, float]:
-        """
-        Evaluate the model on the given validation data.
+        total_grad_norm = 0.0
+        for p in self.model.parameters():
+            if p.grad is not None:
+                total_grad_norm += p.grad.detach().norm(2).item() ** 2
+        total_grad_norm = total_grad_norm ** 0.5
+        # store it
+        if not hasattr(self, "grad_norms"):
+            self.grad_norms = []
+        self.grad_norms.append(total_grad_norm)
 
-        Args:
-            val_loader: The data loader for validation data.
-            device: The device on which to perform the evaluation. Default is 'cpu'.
+        return epsilon, mean_train_loss, mean_train_metric
 
-        Returns:
-            Tuple[float, float]: The evaluation loss and accuracy.
-        """
-        correct, total, loss, accuracy, auc = 0, 0, 0.0, [], []
+    def evaluate(self, val_loader, device=torch.device("cpu")):
         self.model.eval()
+        losses = []
+        y_true_all, y_pred_all = [], []
 
         with torch.no_grad():
-            for X_test, y_test in val_loader:
-                X_test, y_test = X_test.to(device), y_test.to(device)  # Move data to device
+            for i, (X_test, y_test) in enumerate(val_loader):
+                X_test = X_test.to(device)
+                y_test_t = y_test.to(device).view(-1)
+                y_hat_t = self.model(X_test).view(-1)
 
-                y_hat = torch.squeeze(self.model(X_test), 1)
-               
-                
-                criterion = self.criterion.to(y_hat.device)
-                loss += criterion(y_hat, y_test).item()
+                if torch.isnan(y_hat_t).any() or torch.isinf(y_hat_t).any():
+                    _log.warning(f"Eval batch {i}: y_hat NaN/Inf -> skipping")
+                    continue
+                if torch.isnan(y_test_t).any() or torch.isinf(y_test_t).any():
+                    _log.warning(f"Eval batch {i}: y_test NaN/Inf -> skipping")
+                    continue
 
+                crit = self.criterion.to(y_hat_t.device) if hasattr(self.criterion, "to") else self.criterion
+                loss_t = crit(y_hat_t, y_test_t)
 
-                # Move y_hat to CPU for accuracy computation
-                y_hat_cpu = y_hat.cpu().detach().numpy()
-                accuracy.append(accuracy_score(y_test.cpu().numpy(), y_hat_cpu.round()))
+                if torch.isnan(loss_t) or torch.isinf(loss_t):
+                    _log.warning(f"Eval batch {i}: loss NaN/Inf -> skipping")
+                    continue
 
-                # Move y_test to CPU for AUC computation
-                y_test_cpu = y_test.cpu().numpy()
-                y_prob_cpu = y_hat.cpu().detach().numpy()
-                if (len(np.unique(y_test_cpu)) != 1):
-                    auc.append(roc_auc_score(y_test_cpu, y_prob_cpu))
+                losses.append(float(loss_t.item()))
+                y_true_all.append(np.atleast_1d(y_test_t.detach().cpu().numpy()))
+                y_pred_all.append(np.atleast_1d(y_hat_t.detach().cpu().numpy()))
 
-                total += y_test.size(0)
-                correct += np.sum(y_hat_cpu.round() == y_test_cpu)
+        if len(losses) == 0 or len(y_true_all) == 0:
+            return float("nan"), {}
 
-        loss /= len(val_loader.dataset)
-        return loss, np.mean(accuracy), np.mean(auc)
+        y_true = np.concatenate(y_true_all, axis=0)
+        y_pred = np.concatenate(y_pred_all, axis=0)
+        mean_loss = float(np.mean(losses))
 
+        if self.task_type == "binary":
+            acc = accuracy_score(y_true, (y_pred >= 0.5).astype(int))
+            auc = roc_auc_score(y_true, y_pred) if len(np.unique(y_true)) > 1 else float("nan")
+            return mean_loss, {"accuracy": float(acc), "auc": float(auc)}
+
+        if self.task_type == "regression":
+            mask = np.isfinite(y_true) & np.isfinite(y_pred)
+            if mask.sum() == 0:
+                return mean_loss, {"rmse": float("nan"), "mae": float("nan"),
+                                   "r2": float("nan"), "adj_r2": float("nan")}
+
+            y_true_c = y_true[mask]
+            y_pred_c = y_pred[mask]
+            mse = mean_squared_error(y_true_c, y_pred_c)
+            mae = mean_absolute_error(y_true_c, y_pred_c)
+            r2 = r2_score(y_true_c, y_pred_c)
+            rmse = float(np.sqrt(mse))
+            n = int(len(y_true_c))
+
+            p = None
+            try:
+                for m in self.model.modules():
+                    if isinstance(m, torch.nn.Linear):
+                        p = int(m.in_features)
+                        break
+            except Exception:
+                p = None
+
+            if p is None or n <= p + 1:
+                adj_r2 = float("nan")
+            else:
+                adj_r2 = 1.0 - (1.0 - float(r2)) * (n - 1) / (n - p - 1)
+
+            _log.debug(f"adj_r2 check | n={n} | p={p} | condition n>p+1={n > p + 1}")
+
+            return mean_loss, {
+                "rmse": float(rmse),
+                "mae": float(mae),
+                "r2": float(r2),
+                "adj_r2": float(adj_r2),
+            }
+
+        return mean_loss, {}
 
     @staticmethod
-    def save_model(model , model_name:str):
-        """
-        Saves a PyTorch model to a file.
-
-        Args:
-            model (torch.nn.Module): PyTorch model to be saved.
-            model_name (str): Name of the model file.
-
-        Raises:
-            Exception: If there is an issue during the saving process.
-
-        Returns:
-            None
-        """
+    def save_model(model, model_name: str):
         try:
             torch.save(model, '../../notebooks/.ipynb_checkpoints/trainedModels/' + model_name + ".pth")
         except Exception as e:
             raise Exception(f"Error saving the model: {str(e)}")
-    
+
     @staticmethod
     def load_model(model_path: str):
-        """
-        Loads a PyTorch model from a file.
-
-        Args:
-            model_path (str): Path to the model file to be loaded.
-
-        Returns:
-            torch.nn.Module: Loaded PyTorch model.
-        """
-        # Ensure models are loaded onto the CPU when CUDA is not available
         torch_kwargs = {"weights_only": False}
         if torch.cuda.is_available():
-            loaded_model = torch.load(model_path , **torch_kwargs)
+            loaded_model = torch.load(model_path, **torch_kwargs)
         else:
-            loaded_model = torch.load(model_path, map_location=torch.device('cpu') , **torch_kwargs)
+            loaded_model = torch.load(model_path, map_location=torch.device('cpu'), **torch_kwargs)
         return loaded_model
-
-

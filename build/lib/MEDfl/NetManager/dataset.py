@@ -48,10 +48,12 @@ class DataSet:
 
         data_df = pd.read_csv(self.path)
         nodeId = NodeId
-        columns = data_df.columns.tolist()
+        
         
 
         data_df = process_eicu(data_df)
+        columns = data_df.columns.tolist()
+        
         for index, row in data_df.iterrows():
             query_1 = "INSERT INTO DataSets(DataSetName,nodeId," + "".join(
                 f"{x}," for x in columns

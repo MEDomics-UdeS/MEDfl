@@ -1,20 +1,42 @@
-flwr~=1.18.0
-matplotlib~=3.10.8
-numpy~=1.26.4
-opacus~=1.5.3
-pandas~=2.3.1
-PyYAML~=6.0
-setuptools~=68.0.0
-Sphinx~=5.3.0
-SQLAlchemy~=1.4.47
-torch>=2.7.0 
-datetime~=5.1
-scikit-learn~=1.8.0
-sphinx-jsonschema==1.19.1 
-sphinx-rtd-dark-mode==1.2.4
-plotly==5.19.0
-optuna==3.5.0
-mysql-connector-python~=9.3.0
-seaborn~=0.13.2
-flwr[simulation]
+# =========================
+# MEDfl FULL requirements
+# (runtime + docs)
+# Compatible with Python 3.9
+# =========================
 
+# ---- Flower (keep only one; simulation includes extra deps)
+flwr[simulation]~=1.18.0
+
+# ---- Core scientific
+numpy>=1.26,<2.1
+pandas>=1.5,<2.2
+scikit-learn>=1.1,<1.6
+
+# ---- Visualization
+matplotlib>=3.6,<3.10
+seaborn>=0.13,<0.14
+plotly==5.19.0
+
+# ---- Deep learning + DP
+torch>=2.0
+opacus>=1.5,<2.0
+
+# ---- Optimization
+optuna==3.5.0
+
+# ---- DB
+SQLAlchemy>=1.4.47,<2.1
+mysql-connector-python>=9.3,<10.0
+
+# ---- Utils
+PyYAML>=6.0,<7.0
+
+# =========================
+# Docs dependencies (normally should be optional)
+# =========================
+Sphinx>=5.3,<6.0
+sphinx-jsonschema==1.19.1
+sphinx-rtd-dark-mode==1.2.4
+
+xgboost
+shap

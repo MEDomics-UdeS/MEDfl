@@ -1,6 +1,8 @@
 from MEDfl.NetManager.net_helper import *
 from MEDfl.NetManager.net_manager_queries import *
 from MEDfl.NetManager.database_connector import DatabaseManager
+from typing import List, Optional
+
 
 class FederatedDataset:
     def __init__(
@@ -11,6 +13,7 @@ class FederatedDataset:
         trainloaders: list,
         valloaders: list,
         testloaders: list,
+        feature_names: Optional[List[str]] = None,
     ):
         """
         Represents a Federated Dataset.
@@ -29,6 +32,25 @@ class FederatedDataset:
         self.valloaders = valloaders
         self.testloaders = testloaders
         self.size = len(self.trainloaders[0].dataset[0][0])
+
+        if feature_names is None:
+            feature_names = [
+                f"feature_{index}"
+                for index in range(self.size)
+            ]
+
+        if len(feature_names) != self.size:
+            raise ValueError(
+                "feature_names length must match the "
+                f"federated dataset size. Expected {self.size}, "
+                f"received {len(feature_names)}."
+            )
+
+        self.feature_names = list(
+            feature_names
+        )
+
+
 
         db_manager = DatabaseManager()
         db_manager.connect()
