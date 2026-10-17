@@ -40,6 +40,10 @@ from MEDfl.rw.xgboost.serialization import (
 from MEDfl.LearningManager.shap import (
     LocalXGBoostSHAPExplainer,
 )
+from MEDfl.rw.holdout import (
+    HOLDOUT_UNSUPPORTED,
+    run_local_holdout,
+)
 
 
 class XGBoostFlowerClient(fl.client.Client):
@@ -66,6 +70,10 @@ class XGBoostFlowerClient(fl.client.Client):
         Comma-separated test IDs.
     seed : int
         Random seed.
+    holdout_path : Optional[str]
+        Optional local holdout CSV, never used for training. When the server
+        enables the federated holdout test, the final global booster is
+        tested on it after the last round.
     """
 
     def __init__(
@@ -77,9 +85,12 @@ class XGBoostFlowerClient(fl.client.Client):
         id_col: Optional[str] = None,
         test_ids: Optional[str] = None,
         seed: int = 42,
+        holdout_path: Optional[str] = None,
     ):
         self.server_address = server_address
         self.data_path = data_path
+        # read only when the server asks for the holdout test (features/target come from the server)
+        self.holdout_path = holdout_path
 
         self.data_module = XGBoostDataModule(
             data_path=data_path,
@@ -556,12 +567,45 @@ class XGBoostFlowerClient(fl.client.Client):
                     flush=True,
                 )
 
+        # --------------------------------------------------------------
+        # Final-round federated holdout test on the same final booster.
+        # Missing feature values are kept: XGBoost handles them.
+        # --------------------------------------------------------------
+        if bool(config.get("holdout_enabled", False)):
+            if self.task != "binary":
+                metrics["holdout_status"] = HOLDOUT_UNSUPPORTED
+                metrics["holdout_client_id"] = socket.gethostname()
+                metrics["holdout_error"] = (
+                    "The holdout test supports binary classification "
+                    f"only (task is '{self.task}')"
+                )
+            else:
+                metrics.update(
+                    run_local_holdout(
+                        config=config,
+                        holdout_path=self.holdout_path,
+                        features=self.data_module.effective_features,
+                        target=self.data_module.effective_target,
+                        predict=self._predict_probabilities,
+                        client_id=socket.gethostname(),
+                        drop_missing_features=False,
+                    )
+                )
+
         return EvaluateRes(
             status=Status(code=Code.OK, message="Success"),
             loss=loss,
             num_examples=int(self.metadata.get("num_test", 0)),
             metrics=metrics,
         )
+
+    def _predict_probabilities(self, X: np.ndarray) -> np.ndarray:
+        """Positive-class probabilities of the current booster for a feature array."""
+        matrix = xgb.DMatrix(
+            X,
+            feature_names=list(self.data_module.effective_features),
+        )
+        return np.asarray(self.booster.predict(matrix), dtype=float)
 
     def get_properties(self, ins: GetPropertiesIns) -> GetPropertiesRes:
         """
@@ -650,6 +694,12 @@ def main() -> None:
     parser.add_argument("--id_col", type=str, default=None)
     parser.add_argument("--test_ids", type=str, default=None)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument(
+        "--holdout_path",
+        type=str,
+        default=None,
+        help="Optional local holdout CSV for the federated holdout test.",
+    )
 
     args = parser.parse_args()
 
@@ -661,6 +711,7 @@ def main() -> None:
         id_col=args.id_col,
         test_ids=args.test_ids,
         seed=args.seed,
+        holdout_path=args.holdout_path,
     )
 
     client.start()

@@ -12,6 +12,7 @@ from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.model_selection import train_test_split
 from MEDfl.rw.model import Net  # votre définition de modèle
 from MEDfl.LearningManager.shap import LocalPyTorchSHAPExplainer
+from MEDfl.rw.holdout import run_local_holdout
 import socket
 import platform
 import psutil
@@ -77,6 +78,10 @@ class FlowerClient(fl.client.NumPyClient):
         Comma-separated list of IDs (or line numbers) to use as test set.
     seed : int, optional
         Random seed used for splits. Default is ``42``.
+    holdout_path : str, optional
+        Path to a local holdout CSV, never used for training. When the server
+        enables the federated holdout test, the final global model is tested
+        on it after the last round. Default is ``None`` (no holdout).
     """
     def __init__(
         self,
@@ -89,6 +94,7 @@ class FlowerClient(fl.client.NumPyClient):
         id_col=None,
         test_ids=None,
         seed=42,
+        holdout_path=None,
     ):
         self.server_address = server_address
         self.dp_config = dp_config
@@ -97,6 +103,8 @@ class FlowerClient(fl.client.NumPyClient):
         self.id_col = id_col
         self.test_ids = test_ids
         self.seed = seed
+        # read only when the server asks for the holdout test (features/target come from the server)
+        self.holdout_path = holdout_path
 
         # Load the CSV once; actual column selection happens on first fit using server config
         self._df = pd.read_csv(data_path)
@@ -585,9 +593,36 @@ class FlowerClient(fl.client.NumPyClient):
                     flush=True,
                 )
 
+        # ---------------------------------------------------------------
+        # Final-round federated holdout test
+        #
+        # Same final global parameters as SHAP above, tested on the local
+        # holdout file. Rows with missing feature values are dropped since
+        # the network cannot predict them.
+        # ---------------------------------------------------------------
+        if bool(config.get("holdout_enabled", False)):
+            metrics.update(
+                run_local_holdout(
+                    config=config,
+                    holdout_path=self.holdout_path,
+                    features=self.effective_features,
+                    target=self.effective_target,
+                    predict=self._predict_probabilities,
+                    client_id=socket.gethostname(),
+                    drop_missing_features=True,
+                )
+            )
+
         print(f"Evaluation metrics: {metrics}")
 
         return float(avg_loss), len(self.test_loader.dataset), metrics
+
+    def _predict_probabilities(self, X):
+        """Positive-class probabilities of the current model for a feature array."""
+        self.model.eval()
+        with torch.no_grad():
+            logits = self.model(torch.tensor(X, dtype=torch.float32))
+            return torch.sigmoid(logits.reshape(-1)).cpu().numpy()
 
     def get_properties(self, config):
         hostname = socket.gethostname()

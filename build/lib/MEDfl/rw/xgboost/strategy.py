@@ -24,6 +24,7 @@ from MEDfl.LearningManager.shap import (
     SHAPConfig,
     aggregate_federated_shap,
 )
+from MEDfl.rw.holdout import HoldoutConfig, finalize_federated_holdout
 
 
 class XGBoostStrategy:
@@ -71,6 +72,7 @@ class XGBoostStrategy:
         saveOnRounds: int = 1,
         total_rounds: int = 3,
         shap_config: Optional[SHAPConfig] = None,
+        holdout_config: Optional[HoldoutConfig] = None,
     ):
         self.name = "FedXgbBagging"
         self.mode = mode
@@ -129,6 +131,25 @@ class XGBoostStrategy:
         }
         self.local_shap_results = []
 
+        self.holdout_config = (
+            holdout_config
+            if holdout_config is not None
+            else HoldoutConfig(enabled=False)
+        )
+        self.holdout_config.validate()
+        if self.holdout_config.enabled and self.task != "binary":
+            raise ValueError(
+                "The federated holdout test supports binary "
+                f"classification only (task is '{self.task}')"
+            )
+        self.federated_holdout_result = {
+            "status": (
+                "pending"
+                if self.holdout_config.enabled
+                else "disabled"
+            )
+        }
+
         self.strategy_object = None
         self.current_booster: Optional[xgb.Booster] = None
         self.current_num_trees: int = 0
@@ -180,6 +201,9 @@ class XGBoostStrategy:
                     and is_final_round
                 ),
             }
+
+            if self.holdout_config.enabled and is_final_round:
+                cfg.update(self.holdout_config.to_evaluate_config())
 
             if cfg["shap_enabled"]:
                 cfg.update(
@@ -336,9 +360,9 @@ class XGBoostStrategy:
         evaluate_config_fn,
     ) -> None:
         """
-        On the final round, request evaluation/SHAP from every currently
-        connected client so the federated SHAP result represents all
-        available institutions.
+        On the final round, request evaluation/SHAP/holdout from every
+        currently connected client so the federated SHAP and holdout
+        results represent all available institutions.
         """
         original_configure_evaluate = (
             strategy.configure_evaluate
@@ -350,7 +374,7 @@ class XGBoostStrategy:
             client_manager,
         ):
             is_final_shap_round = (
-                self.shap_config.enabled
+                (self.shap_config.enabled or self.holdout_config.enabled)
                 and int(server_round)
                 == int(self.total_rounds)
             )
@@ -372,9 +396,10 @@ class XGBoostStrategy:
             )
 
             print(
-                "[Server/SHAP] XGBoost final round: "
-                "requesting local SHAP from "
-                f"{len(available_clients)} connected client(s).",
+                "[Server/XGBoost] Final round: requesting the final "
+                f"evaluation from {len(available_clients)} connected "
+                f"client(s) (SHAP: {self.shap_config.enabled}, "
+                f"holdout: {self.holdout_config.enabled}).",
                 flush=True,
             )
 
@@ -524,8 +549,8 @@ class XGBoostStrategy:
 
     def _wrap_aggregate_evaluate(self, strategy) -> None:
         """
-        Wrap aggregate_evaluate for logging and final federated SHAP
-        aggregation.
+        Wrap aggregate_evaluate for logging and final federated SHAP and
+        holdout aggregation.
         """
 
         original_aggregate_evaluate = (
@@ -692,6 +717,16 @@ class XGBoostStrategy:
                         "SHAP results were returned.",
                         flush=True,
                     )
+
+            if self.holdout_config.enabled and is_final_round:
+                self.federated_holdout_result = (
+                    finalize_federated_holdout(
+                        results,
+                        failures,
+                        self.holdout_config,
+                        backend="xgboost",
+                    )
+                )
 
             return loss, metrics
 
@@ -937,6 +972,8 @@ class XGBoostStrategy:
         importance_gain = booster.get_score(importance_type="gain")
         importance_weight = booster.get_score(importance_type="weight")
         importance_cover = booster.get_score(importance_type="cover")
+
+      
 
         print(f"\n[Server/XGBoost] 📊 Round {server_round} Global Feature Importance - Gain:")
         print(importance_gain)
