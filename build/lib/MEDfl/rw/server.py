@@ -2,6 +2,7 @@ import flwr as fl
 from flwr.server.strategy import FedAvg
 from flwr.server.server import ServerConfig
 from MEDfl.rw.strategy import Strategy
+from MEDfl.LearningManager.shap import SHAPConfig
 import asyncio
 from flwr.server.client_manager import ClientManager
 from flwr.server.client_proxy import ClientProxy
@@ -33,6 +34,7 @@ class FederatedServer:
         num_rounds=3,
         strategy=None,
         certificates=None,
+        shap_config=None,
     ):
         """
         Initialize the FederatedServer.
@@ -50,13 +52,87 @@ class FederatedServer:
 
         # Use custom or default strategy
         self.strategy_wrapper = strategy or Strategy()
+
+        self.shap_config = (
+            shap_config
+            if shap_config is not None
+            else SHAPConfig(enabled=False)
+        )
+
+        # The Strategy owns the final-round SHAP orchestration.
+        self.strategy_wrapper.shap_config = self.shap_config
+
+        # Keep the strategy's final-round marker synchronized with
+        # the actual Flower ServerConfig.
+        self.strategy_wrapper.total_rounds = int(num_rounds)
+
+        # Validate SHAP against the active real-world backend.
+        if self.shap_config.enabled:
+            feature_columns = [
+                column.strip()
+                for column in (
+                    getattr(
+                        self.strategy_wrapper,
+                        "_features",
+                        "",
+                    )
+                    or ""
+                ).split(",")
+                if column.strip()
+            ]
+
+            if not feature_columns:
+                raise ValueError(
+                    "Federated SHAP requires the Strategy 'features' "
+                    "configuration so the model input size can be "
+                    "validated."
+                )
+
+            backend = (
+                "xgboost"
+                if getattr(
+                    self.strategy_wrapper,
+                    "name",
+                    "",
+                ) == "FedXgbBagging"
+                else "pytorch"
+            )
+
+            task = (
+                getattr(
+                    self.strategy_wrapper,
+                    "task",
+                    None,
+                )
+                if backend == "xgboost"
+                else None
+            )
+
+            self.shap_config.validate_backend(
+                input_size=len(feature_columns),
+                backend=backend,
+                task=task,
+            )
+
         self.strategy_wrapper.create_strategy()
         if self.strategy_wrapper.strategy_object is None:
-            raise ValueError("Strategy object not initialized. Call create_strategy() first.")
+            raise ValueError(
+                "Strategy object not initialized. "
+                "Call create_strategy() first."
+            )
         self.strategy = self.strategy_wrapper.strategy_object
 
         self.certificates = certificates
         self.connected_clients = []  # Track connected client IDs
+
+        self.federated_shap_result = {
+            "status": (
+                "pending"
+                if self.shap_config.enabled
+                else "disabled"
+            )
+        }
+        self.local_shap_results = []
 
 
     def start(self):
@@ -77,6 +153,21 @@ class FederatedServer:
             certificates=self.certificates,
             client_manager=client_manager,
         )
+
+        # The strategy aggregates SHAP during the final evaluation.
+        self.federated_shap_result = (
+            self.strategy_wrapper.federated_shap_result
+        )
+        self.local_shap_results = (
+            self.strategy_wrapper.local_shap_results
+        )
+
+        if self.shap_config.enabled:
+            print(
+                "[Server/SHAP] Final federated SHAP status: "
+                f"{self.federated_shap_result.get('status')}",
+                flush=True,
+            )
 
 
 class TrackingClientManager(fl.server.client_manager.SimpleClientManager):

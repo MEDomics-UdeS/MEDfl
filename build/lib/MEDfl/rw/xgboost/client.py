@@ -10,6 +10,8 @@ import numpy as np
 import pandas as pd
 import psutil
 import xgboost as xgb
+import torch
+from torch.utils.data import DataLoader, TensorDataset
 from flwr.common import (
     Code,
     EvaluateIns,
@@ -34,6 +36,9 @@ from MEDfl.rw.xgboost.metrics import evaluate_predictions
 from MEDfl.rw.xgboost.serialization import (
     booster_to_parameters,
     parameters_to_booster,
+)
+from MEDfl.LearningManager.shap import (
+    LocalXGBoostSHAPExplainer,
 )
 
 
@@ -95,7 +100,7 @@ class XGBoostFlowerClient(fl.client.Client):
         self.task = "binary"
         self.threshold = 0.5
         self.xgb_params: Dict[str, Any] = {}
-        self.local_num_boost_round = 1
+        self.local_num_boost_round = 10
 
         self._initialized = False
 
@@ -143,6 +148,250 @@ class XGBoostFlowerClient(fl.client.Client):
             f"val={self.metadata.get('num_val')}, "
             f"test={self.metadata.get('num_test')}"
         )
+
+    # ------------------------------------------------------------------
+    # Federated SHAP helpers
+    # ------------------------------------------------------------------
+
+    def _get_shap_dmatrix(self, data_split: str) -> xgb.DMatrix:
+        """
+        Return the local DMatrix selected for the post-training SHAP phase.
+        """
+        split = str(data_split).lower()
+
+        if split == "train":
+            matrix = self.dtrain
+        elif split == "validation":
+            matrix = self.dval
+        elif split == "test":
+            matrix = self.dtest
+        else:
+            raise ValueError(
+                f"Unsupported SHAP data split '{data_split}'. "
+                "Expected train, validation, or test."
+            )
+
+        if matrix is None:
+            raise ValueError(
+                f"The selected SHAP split '{split}' is not available "
+                "on this XGBoost client."
+            )
+
+        if int(matrix.num_row()) <= 0:
+            raise ValueError(
+                f"The selected SHAP split '{split}' is empty "
+                "on this XGBoost client."
+            )
+
+        return matrix
+
+    @staticmethod
+    def _dmatrix_to_shap_loader(
+        matrix: xgb.DMatrix,
+        batch_size: int = 256,
+    ) -> DataLoader:
+        """
+        Convert a local XGBoost DMatrix into the DataLoader interface expected
+        by LocalXGBoostSHAPExplainer.
+
+        The conversion is local only. No samples are transmitted.
+        """
+        if matrix is None:
+            raise ValueError("Cannot create a SHAP loader from None.")
+
+        try:
+            features = matrix.get_data()
+        except AttributeError as exc:
+            raise RuntimeError(
+                "This XGBoost version does not expose DMatrix.get_data(). "
+                "Upgrade XGBoost or adapt XGBoostDataModule to retain the "
+                "local NumPy feature splits for SHAP."
+            ) from exc
+
+        # DMatrix.get_data() commonly returns a scipy sparse matrix.
+        if hasattr(features, "toarray"):
+            features = features.toarray()
+
+        features = np.asarray(features, dtype=np.float32)
+
+        if features.ndim != 2:
+            raise ValueError(
+                "SHAP expects 2-D tabular XGBoost features. "
+                f"Received shape {features.shape}."
+            )
+
+        labels = np.asarray(
+            matrix.get_label(),
+            dtype=np.float32,
+        )
+
+        x_tensor = torch.tensor(
+            features,
+            dtype=torch.float32,
+        )
+        y_tensor = torch.tensor(
+            labels,
+            dtype=torch.float32,
+        )
+
+        return DataLoader(
+            TensorDataset(x_tensor, y_tensor),
+            batch_size=max(1, min(int(batch_size), len(x_tensor))),
+            shuffle=False,
+        )
+
+    def _calculate_local_shap(
+        self,
+        config: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        Explain the final federated XGBoost booster on this client's selected
+        local data partition.
+
+        Only additive SHAP summaries are serialized back to the server.
+        """
+        if not self._initialized:
+            self._initialize_from_config(config)
+
+        if self.booster is None:
+            raise RuntimeError(
+                "Cannot calculate XGBoost SHAP without a booster."
+            )
+
+        explainer_name = str(
+            config.get("shap_explainer", "tree")
+        ).lower()
+
+        if explainer_name != "tree":
+            raise ValueError(
+                "Real-world XGBoost SHAP requires explainer='tree'."
+            )
+
+        data_split = str(
+            config.get("shap_data_split", "validation")
+        )
+        background_size = int(
+            config.get("shap_background_size", 100)
+        )
+        explanation_size = int(
+            config.get("shap_explanation_size", 500)
+        )
+        random_seed = int(
+            config.get("shap_random_seed", 42)
+        )
+        minimum_samples = int(
+            config.get("shap_minimum_samples", 10)
+        )
+        model_output = str(
+            config.get("shap_model_output", "raw")
+        )
+
+        clipping_raw = float(
+            config.get("shap_clipping_value", -1.0)
+        )
+        clipping_value = (
+            None if clipping_raw <= 0 else clipping_raw
+        )
+
+        feature_names_raw = str(
+            config.get("shap_feature_names_json", "[]")
+        )
+
+        try:
+            configured_feature_names = json.loads(
+                feature_names_raw
+            )
+        except Exception:
+            configured_feature_names = []
+
+        effective_features = list(
+            self.metadata.get("features", [])
+        )
+
+        feature_names = (
+            list(configured_feature_names)
+            if configured_feature_names
+            else effective_features
+        )
+
+        if len(feature_names) != int(
+            self.metadata.get("num_features", 0)
+        ):
+            raise ValueError(
+                "SHAP feature names do not match the XGBoost input size. "
+                f"Expected {self.metadata.get('num_features', 0)}, "
+                f"received {len(feature_names)}."
+            )
+
+        matrix = self._get_shap_dmatrix(data_split)
+
+        available_samples = int(matrix.num_row())
+
+        if available_samples < minimum_samples:
+            raise ValueError(
+                f"Only {available_samples} samples are available in "
+                f"the '{data_split}' split, but "
+                f"minimum_samples={minimum_samples}."
+            )
+
+        loader = self._dmatrix_to_shap_loader(
+            matrix=matrix,
+            batch_size=min(256, available_samples),
+        )
+
+        local_explainer = LocalXGBoostSHAPExplainer(
+            background_size=background_size,
+            explanation_size=explanation_size,
+            random_seed=random_seed,
+            clipping_value=clipping_value,
+            model_output=model_output,
+        )
+
+        result = local_explainer.calculate(
+            booster=self.booster,
+            loader=loader,
+        )
+
+        explained_samples = int(
+            result["sample_count"]
+        )
+
+        if explained_samples < minimum_samples:
+            raise ValueError(
+                f"Only {explained_samples} samples were explained, "
+                f"but minimum_samples={minimum_samples}."
+            )
+
+        return {
+            "client_id": socket.gethostname(),
+            "feature_names": feature_names,
+            "available_samples": available_samples,
+            "sample_count": explained_samples,
+            "abs_sum": np.asarray(
+                result["abs_sum"],
+                dtype=np.float64,
+            ).tolist(),
+            "signed_sum": np.asarray(
+                result["signed_sum"],
+                dtype=np.float64,
+            ).tolist(),
+            "square_sum": np.asarray(
+                result["square_sum"],
+                dtype=np.float64,
+            ).tolist(),
+            "positive_count": np.asarray(
+                result["positive_count"],
+                dtype=np.int64,
+            ).tolist(),
+            "negative_count": np.asarray(
+                result["negative_count"],
+                dtype=np.int64,
+            ).tolist(),
+            "zero_count": np.asarray(
+                result["zero_count"],
+                dtype=np.int64,
+            ).tolist(),
+        }
 
     def get_parameters(self, ins: GetParametersIns) -> GetParametersRes:
         """
@@ -264,6 +513,48 @@ class XGBoostFlowerClient(fl.client.Client):
             loss = float(eval_metrics.get("logloss", 0.0))
         else:
             loss = float(eval_metrics.get("mlogloss", 0.0))
+
+        # --------------------------------------------------------------
+        # Final-round federated SHAP.
+        #
+        # ins.parameters contains the server-aggregated booster for this
+        # evaluation. Therefore all participating clients explain the
+        # same final global XGBoost model.
+        # --------------------------------------------------------------
+        if bool(config.get("shap_enabled", False)):
+            print(
+                "[XGBoostClient/SHAP] Starting local SHAP on "
+                "the final global booster...",
+                flush=True,
+            )
+
+            try:
+                local_shap_result = (
+                    self._calculate_local_shap(config)
+                )
+
+                metrics["shap_status"] = "completed"
+                metrics["shap_result"] = json.dumps(
+                    local_shap_result,
+                    allow_nan=False,
+                )
+
+                print(
+                    "[XGBoostClient/SHAP] Local SHAP completed | "
+                    f"client={local_shap_result['client_id']} | "
+                    f"samples={local_shap_result['sample_count']}",
+                    flush=True,
+                )
+
+            except Exception as exc:
+                metrics["shap_status"] = "failed"
+                metrics["shap_error"] = str(exc)
+
+                print(
+                    "[XGBoostClient/SHAP] Local SHAP failed: "
+                    f"{exc}",
+                    flush=True,
+                )
 
         return EvaluateRes(
             status=Status(code=Code.OK, message="Success"),

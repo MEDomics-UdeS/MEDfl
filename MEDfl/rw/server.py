@@ -66,12 +66,17 @@ class FederatedServer:
         # the actual Flower ServerConfig.
         self.strategy_wrapper.total_rounds = int(num_rounds)
 
-        # Validate the PyTorch SHAP configuration before the server starts.
+        # Validate SHAP against the active real-world backend.
         if self.shap_config.enabled:
             feature_columns = [
                 column.strip()
                 for column in (
-                    self.strategy_wrapper._features or ""
+                    getattr(
+                        self.strategy_wrapper,
+                        "_features",
+                        "",
+                    )
+                    or ""
                 ).split(",")
                 if column.strip()
             ]
@@ -79,13 +84,34 @@ class FederatedServer:
             if not feature_columns:
                 raise ValueError(
                     "Federated SHAP requires the Strategy 'features' "
-                    "configuration so the neural-network input size "
-                    "can be validated."
+                    "configuration so the model input size can be "
+                    "validated."
                 )
+
+            backend = (
+                "xgboost"
+                if getattr(
+                    self.strategy_wrapper,
+                    "name",
+                    "",
+                ) == "FedXgbBagging"
+                else "pytorch"
+            )
+
+            task = (
+                getattr(
+                    self.strategy_wrapper,
+                    "task",
+                    None,
+                )
+                if backend == "xgboost"
+                else None
+            )
 
             self.shap_config.validate_backend(
                 input_size=len(feature_columns),
-                backend="pytorch",
+                backend=backend,
+                task=task,
             )
 
         self.strategy_wrapper.create_strategy()
