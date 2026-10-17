@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import pkg_resources
 import torch
 import yaml
 from sklearn.metrics import *

@@ -1,7 +1,7 @@
 from datetime import datetime
 
 
-from torch.utils.data import random_split, DataLoader, Dataset
+from torch.utils.data import random_split, DataLoader, Dataset , TensorDataset
 
 from MEDfl.LearningManager.federated_dataset import FederatedDataset
 from .net_helper import *
@@ -12,6 +12,11 @@ from .node import Node
 
 from MEDfl.NetManager.database_connector import DatabaseManager
 
+import numpy as np
+import torch
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from torch.utils.data import random_split, DataLoader, Dataset, TensorDataset
 
 class FLsetup:
     def __init__(self, name: str, description: str, network: Network):
@@ -176,7 +181,7 @@ class FLsetup:
         fill_strategy="mean",  fit_encode=[], to_drop=[],
         train_batch_size: int = 32,
         test_batch_size: int = 1,
-        split_frac: float = 0.2,
+        split_frac: float = 0,
         dataset: Dataset = None,
 
     ):
@@ -212,84 +217,205 @@ class FLsetup:
         return trainloader, testloader
 
     def create_federated_dataset(
-        self, output, fill_strategy="mean",  fit_encode=[], to_drop=[], val_frac=0.1, test_frac=0.2
+        self,
+        output,
+        fill_strategy="mean",
+        fit_encode=[],
+        to_drop=[],
+        val_frac=0.2,
+        test_frac=0.15,
+        train_batch_size=8,
+        task_type="binary",  
+        scale_y=None,        
     ) -> FederatedDataset:
-        """Create a federated dataset.
 
-        Args:
-            output (string): the output feature of the dataset
-            val_frac (float): The fraction of data to be used for validation.
-            test_frac (float): The fraction of data to be used for testing.
+        to_drop = list(to_drop)
 
-        Returns:
-            FederatedDataset: The FederatedDataset instance containing train, validation, and test data.
-        """
-        
         if not self.column_name:
-            to_drop.extend(["DataSetName" , "NodeId" , "DataSetId"])
-        else :
-            to_drop.extend(["PatientId"]) 
-            
+            to_drop.extend(["DataSetName", "NodeId", "DataSetId"])
+        else:
+            to_drop.extend(["PatientId"])
+
         netid = self.network.id
+
         train_nodes = pd.read_sql(
-            text(
-                f"SELECT Nodes.NodeName  FROM Nodes WHERE Nodes.NetId = {netid} AND Nodes.train = 1 "
-            ),
+            text(f"SELECT Nodes.NodeName FROM Nodes WHERE Nodes.NetId = {netid} AND Nodes.train = 1"),
             self.eng,
         )
         test_nodes = pd.read_sql(
-            text(
-                f"SELECT Nodes.NodeName  FROM Nodes WHERE Nodes.NetId = {netid} AND Nodes.train = 0 "
-            ),
+            text(f"SELECT Nodes.NodeName FROM Nodes WHERE Nodes.NetId = {netid} AND Nodes.train = 0"),
             self.eng,
         )
 
-        train_nodes = [
-            Node(val[0], 1, test_frac) for val in train_nodes.values.tolist()
-        ]
+        train_nodes = [Node(val[0], 1, test_frac) for val in train_nodes.values.tolist()]
         test_nodes = [Node(val[0], 0) for val in test_nodes.values.tolist()]
 
         trainloaders, valloaders, testloaders = [], [], []
-        # if len(test_nodes) == 0:
-        #     raise "test node empty"
-        if test_nodes is None:
-            _, testloader = self.create_dataloader_from_node(
-                train_nodes[0], output, fill_strategy=fill_strategy, fit_encode=fit_encode, to_drop=to_drop)
-            testloaders.append(testloader)
-        else:
-            for train_node in train_nodes:
-                train_valloader, testloader = self.create_dataloader_from_node(
-                    train_node, output, fill_strategy=fill_strategy,
-                    fit_encode=fit_encode, to_drop=to_drop,)
-                trainloader, valloader = self.create_dataloader_from_node(
-                    train_node,
-                    output, fill_strategy=fill_strategy, fit_encode=fit_encode, to_drop=to_drop,
-                    test_batch_size=32,
-                    split_frac=val_frac,
-                    dataset=train_valloader.dataset,
-                )
-                trainloaders.append(trainloader)
-                valloaders.append(valloader)
-                testloaders.append(testloader)
+        self.scalers = {}
 
-            for test_node in test_nodes:
-                _, testloader = self.create_dataloader_from_node(
-                    test_node, output, fill_strategy=fill_strategy, fit_encode=fit_encode, to_drop=to_drop, split_frac=1.0
-                )
-                testloaders.append(testloader)
-        train_nodes_names = [node.name for node in train_nodes]
-        test_nodes_names = train_nodes_names + [
-            node.name for node in test_nodes
-        ]
+        # -----------------------------
+        # Pass 1: collect all training raw data
+        # -----------------------------
+        cached_splits = {}
+        all_train_X = []
+        all_train_y = []
+
+        for train_node in train_nodes:
+            if self.column_name is not None:
+                raw_data = train_node.get_dataset(self.column_name)
+            else:
+                raw_data = train_node.get_dataset()
+
+            n = len(raw_data)
+            n_test = max(0, int(n * test_frac))
+            n_trainval = n - n_test
+
+            raw_data = raw_data.sample(frac=1, random_state=42).reset_index(drop=True)
+            trainval_raw = raw_data.iloc[:n_trainval].copy()
+            test_raw = raw_data.iloc[n_trainval:].copy()
+
+            cached_splits[train_node.name] = {
+                "trainval_raw": trainval_raw,
+                "test_raw": test_raw,
+            }
+
+            tmp = trainval_raw.copy()
+
+            for s in fit_encode:
+                tmp[s] = LabelEncoder().fit_transform(tmp[s])
+
+            y_series = pd.to_numeric(tmp[output], errors="coerce")
+            X_df = tmp.copy()
+
+            for column in to_drop:
+                if column in X_df.columns:
+                    X_df = X_df.drop([column], axis=1)
+
+            features = [col for col in X_df.columns if col != output]
+
+            imputer = SimpleImputer(strategy=fill_strategy)
+            X_df[features] = imputer.fit_transform(X_df[features])
+
+            X_vals = X_df[features].values
+            y_vals = y_series.values.reshape(-1, 1)
+
+            valid_mask = ~np.isnan(y_vals).ravel()
+            X_vals = X_vals[valid_mask]
+            y_vals = y_vals[valid_mask]
+
+            if len(X_vals) > 0:
+                all_train_X.append(X_vals)
+                all_train_y.append(y_vals)
+
+        if len(all_train_X) == 0:
+            raise ValueError("No training data available to fit global scalers")
+
+        # -----------------------------
+        # Pass 2: fit one global X scaler and one global y scaler
+        # -----------------------------
+        global_scaler_X = StandardScaler()
+        global_scaler_X.fit(np.vstack(all_train_X))
+
+        if scale_y is None:
+            scale_y = (task_type == "regression")
         
-        # test_nodes_names = [
-        #     node.name for node in test_nodes
-        # ]
+        global_scaler_y = None
+        if task_type == "regression" and scale_y:
+            if len(all_train_y) == 0:
+                raise ValueError("No training targets available to fit global y scaler")
+            global_scaler_y = StandardScaler()
+            global_scaler_y.fit(np.vstack(all_train_y))
 
-        # Add FlSetup on to the DataBase
-        # self.create()
+        # -----------------------------
+        # Pass 3: build datasets using the same global scalers
+        # -----------------------------
+        for train_node in train_nodes:
+            trainval_raw = cached_splits[train_node.name]["trainval_raw"]
+            test_raw = cached_splits[train_node.name]["test_raw"]
 
-        # self.network.update_network(FLsetupId=self.id)
+            trainval_dataset, _, _ = process_data_after_reading(
+                trainval_raw.copy(),
+                output,
+                fill_strategy=fill_strategy,
+                fit_encode=fit_encode,
+                to_drop=to_drop,
+                scaler_X=global_scaler_X,
+                scaler_y=global_scaler_y,
+                fit_scaler=False,
+                task_type=task_type,
+                scale_y=scale_y,
+            )
+
+            self.scalers[train_node.name] = {
+                "X": global_scaler_X,
+                "y": global_scaler_y,
+            }
+
+            n_tv = len(trainval_dataset)
+            n_val = max(0, int(n_tv * val_frac))
+            n_tr = n_tv - n_val
+
+            train_ds, val_ds = random_split(trainval_dataset, [n_tr, n_val])
+
+            if len(test_raw) == 0:
+                if len(trainval_dataset) > 0:
+                    n_features = len(trainval_dataset[0][0])
+                else:
+                    n_features = len(features)
+
+                empty_X = torch.empty((0, n_features), dtype=torch.float32)
+                empty_y = torch.empty((0,), dtype=torch.float32)
+                test_dataset = TensorDataset(empty_X, empty_y)
+            else:
+                test_dataset, _, _ = process_data_after_reading(
+                    test_raw.copy(),
+                    output,
+                    fill_strategy=fill_strategy,
+                    fit_encode=fit_encode,
+                    to_drop=to_drop,
+                    scaler_X=global_scaler_X,
+                    scaler_y=global_scaler_y,
+                    fit_scaler=False,
+                    task_type=task_type,
+                    scale_y=scale_y,
+                )
+
+            trainloaders.append(DataLoader(train_ds, batch_size=train_batch_size, shuffle=True))
+            valloaders.append(DataLoader(val_ds, batch_size=8))
+            testloaders.append(DataLoader(test_dataset, batch_size=8))
+
+            print(f"{train_node.name}: train={n_tr}, val={n_val}, test={len(test_dataset)}")
+
+        # test-only nodes
+        for test_node in test_nodes:
+            raw_data = test_node.get_dataset()
+
+            if len(raw_data) == 0:
+                continue
+
+            test_dataset, _, _ = process_data_after_reading(
+                raw_data.copy(),
+                output,
+                fill_strategy=fill_strategy,
+                fit_encode=fit_encode,
+                to_drop=to_drop,
+                scaler_X=global_scaler_X,
+                scaler_y=global_scaler_y,
+                fit_scaler=False,
+                task_type=task_type,
+                scale_y=scale_y,
+            )
+
+            self.scalers[test_node.name] = {
+                "X": global_scaler_X,
+                "y": global_scaler_y,
+            }
+
+            testloaders.append(DataLoader(test_dataset, batch_size=8))
+
+        train_nodes_names = [node.name for node in train_nodes]
+        test_nodes_names = train_nodes_names + [node.name for node in test_nodes]
+
         fed_dataset = FederatedDataset(
             self.name + "_Feddataset",
             train_nodes_names,
@@ -298,13 +424,11 @@ class FLsetup:
             valloaders,
             testloaders,
         )
+
         self.fed_dataset = fed_dataset
         self.fed_dataset.create(self.id)
+
         return self.fed_dataset
-    
-    
-
-
     def get_flDataSet(self):
         """
         Retrieve the federated dataset associated with the FL setup using the FL setup's name.

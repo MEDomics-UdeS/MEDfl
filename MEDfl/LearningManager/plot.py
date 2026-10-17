@@ -227,3 +227,108 @@ class AccuracyLossPlotter:
         plt.show()
 
         return 
+
+
+
+
+def plot_client_regression_weights(strategy_obj, feature_names=None, include_bias=True):
+    """
+    Plot per-client linear-regression weights over FL rounds.
+
+    Assumes each regression entry in:
+        strategy_obj.client_fit_history[cid]
+    contains:
+        - "round"
+        - "weights"
+
+    For a linear regressor:
+        weights[0] -> weight matrix, shape (1, input_dim) or similar
+        weights[1] -> bias, shape (1,) or similar
+    """
+
+    history = strategy_obj.client_fit_history
+
+    if not history:
+        print("No client_fit_history found.")
+        return
+
+    for cid, entries in history.items():
+        # keep only rounds where weights were stored
+        reg_entries = [e for e in entries if "weights" in e]
+
+        if not reg_entries:
+            print(f"Client {cid}: no stored regression weights.")
+            continue
+
+        rounds = []
+        coeff_series = []
+        bias_series = []
+
+        for e in reg_entries:
+            rounds.append(int(e["round"]))
+
+            weights = e["weights"]
+
+            # linear regression assumption
+            w = np.array(weights[0]).reshape(-1)
+
+            coeff_series.append(w)
+
+            if include_bias and len(weights) > 1:
+                b = float(np.array(weights[1]).reshape(-1)[0])
+                bias_series.append(b)
+
+        coeff_series = np.array(coeff_series)   # shape: (num_rounds, num_features)
+
+        plt.figure(figsize=(10, 5))
+
+        n_features = coeff_series.shape[1]
+        for j in range(n_features):
+            label = feature_names[j] if feature_names is not None and j < len(feature_names) else f"w{j}"
+            plt.plot(rounds, coeff_series[:, j], marker="o", label=label)
+
+        if include_bias and len(bias_series) == len(rounds):
+            plt.plot(rounds, bias_series, marker="x", linestyle="--", label="bias")
+
+        plt.title(f"Client {cid} - weights over rounds")
+        plt.xlabel("Round")
+        plt.ylabel("Weight value")
+        plt.grid(True)
+        plt.legend()
+        plt.tight_layout()
+        plt.show()
+
+
+
+
+def plot_one_weight_across_clients(strategy_obj, weight_index=0, feature_name=None):
+    history = strategy_obj.client_fit_history
+
+    plt.figure(figsize=(10, 5))
+
+    for cid, entries in history.items():
+        reg_entries = [e for e in entries if "weights" in e]
+        if not reg_entries:
+            continue
+
+        rounds = []
+        vals = []
+
+        for e in reg_entries:
+            w = np.array(e["weights"][0]).reshape(-1)
+            if weight_index >= len(w):
+                continue
+            rounds.append(int(e["round"]))
+            vals.append(float(w[weight_index]))
+
+        if rounds:
+            plt.plot(rounds, vals, marker=",", label=f"Client {cid}")
+
+    label = feature_name if feature_name is not None else f"w{weight_index}"
+    plt.title(f"{label} across clients over rounds")
+    plt.xlabel("Round")
+    plt.ylabel("Weight value")
+    plt.grid(True)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
